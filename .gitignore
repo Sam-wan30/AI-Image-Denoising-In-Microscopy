@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Runtime uploads (ephemeral on Render)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# Large checkpoints — use Git LFS or MODEL_URL (see DEPLOY.md)
+models/**/*.pth
+models/deploy/model.pt
+
+# IDE / OS
+.DS_Store
+.idea/
+*.code-workspace
+
+# Logs
+*.log

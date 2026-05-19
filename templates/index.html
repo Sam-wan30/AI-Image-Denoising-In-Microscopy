@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroScope · AI Microscopy Denoising</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
+</head>
+<body>
+  <div class="container">
+    <nav class="ns-navbar">
+      <div class="ns-brand">
+        <div class="ns-brand-icon">🔬</div>
+        <div>
+          <div class="ns-brand-name">NeuroScope</div>
+          <div class="ns-brand-tag">AI Denoising Lab</div>
+        </div>
+      </div>
+      <div class="ns-status-pill">
+        <span class="ns-status-dot" id="status-dot"></span>
+        <span id="status-text">Checking model…</span>
+      </div>
+    </nav>
+
+    <section class="ns-hero">
+      <div>
+        <div class="ns-badge">RESIDUAL-U-NET · Production</div>
+        <h1 class="ns-hero-title">
+          <span class="ns-gradient-text">AI Microscopy</span><br />Image Denoising
+        </h1>
+        <p class="ns-hero-desc">
+          Upload a noisy microscopy image, run the trained U-Net, and download a cleaner result with PSNR and SSIM metrics.
+        </p>
+      </div>
+    </section>
+
+    <div id="alert-box" class="ns-alert" role="alert"></div>
+
+    <form id="denoise-form">
+      <div class="ns-section">
+        <div class="ns-section-head">
+          <span class="ns-section-num">/01</span>
+          <span class="ns-section-title">Upload</span>
+          <span class="ns-section-sub">— DROP A SAMPLE</span>
+        </div>
+        <div class="ns-glass ns-upload-wrap">
+          <div class="ns-upload-icon">⬆</div>
+          <p><strong>Drop your microscopy image here</strong></p>
+          <p class="ns-upload-hint">PNG, JPG, TIFF · up to 50MB</p>
+          <input class="ns-file-input" type="file" id="image-input" name="image" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" required />
+          <div class="ns-tags">
+            <span class="ns-tag">Fluorescence</span>
+            <span class="ns-tag">SEM / TEM</span>
+            <span class="ns-tag">Confocal</span>
+            <span class="ns-tag">Brightfield</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ns-section mt-2">
+        <div class="ns-section-head">
+          <span class="ns-section-num">/02</span>
+          <span class="ns-section-title">Comparison</span>
+          <span class="ns-section-sub">— SIDE-BY-SIDE</span>
+        </div>
+        <div class="ns-compare-grid">
+          <div class="ns-glass">
+            <div class="ns-compare-header">
+              <span><span class="ns-dot red"></span>Original · Noisy input</span>
+              <span class="ns-meta" id="original-meta">—</span>
+            </div>
+            <div class="ns-compare-body">
+              <div class="ns-placeholder" id="original-placeholder">No image uploaded</div>
+              <img id="original-img" class="hidden" alt="Original" />
+            </div>
+          </div>
+          <div class="ns-glass">
+            <div class="ns-compare-header">
+              <span><span class="ns-dot cyan"></span>Denoised · AI output</span>
+              <span class="ns-meta" id="denoised-meta">—</span>
+            </div>
+            <div class="ns-compare-body">
+              <div class="ns-placeholder" id="denoised-placeholder">Run denoising to see result</div>
+              <img id="denoised-img" class="hidden" alt="Denoised" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <label for="mode-select" style="color:var(--ns-text-muted);font-size:0.85rem;">Denoising mode</label>
+        <select id="mode-select" name="mode" style="display:block;margin-top:0.35rem;padding:0.5rem;border-radius:8px;background:#0b1018;color:#f1f5f9;border:1px solid var(--ns-border-soft);">
+          <option value="auto">Auto</option>
+          <option value="unet">Microscopy U-Net</option>
+          <option value="salt_pepper">Salt-and-pepper filter</option>
+          <option value="brightfield">Brightfield object mask</option>
+        </select>
+      </div>
+
+      <button type="submit" class="ns-btn-primary mt-2" id="denoise-btn">Start denoising →</button>
+
+      <div id="results-section" class="hidden mt-2">
+        <div class="ns-section" id="metrics-section">
+          <div class="ns-section-head">
+            <span class="ns-section-num">/03</span>
+            <span class="ns-section-title">Quality Metrics</span>
+            <span class="ns-section-sub">— QUANTITATIVE FIDELITY</span>
+          </div>
+          <div class="ns-metrics-grid">
+            <div class="ns-glass ns-metric-card">
+              <div class="ns-metric-desc">PSNR · Peak Signal-to-Noise Ratio</div>
+              <div class="ns-metric-value" id="psnr-value">—</div>
+              <div class="ns-metric-bar"><div class="ns-metric-bar-fill" id="psnr-bar" style="width:0%"></div></div>
+            </div>
+            <div class="ns-glass ns-metric-card">
+              <div class="ns-metric-desc">SSIM · Structural Similarity</div>
+              <div class="ns-metric-value" id="ssim-value">—</div>
+              <div class="ns-metric-bar"><div class="ns-metric-bar-fill" id="ssim-bar" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+        <a id="download-btn" class="ns-btn-secondary mt-2 hidden" download>⬇ Download denoised image</a>
+      </div>
+    </form>
+
+    <footer class="ns-footer">
+      <span>NeuroScope · Research demo</span>
+      <span>Powered by PyTorch U-Net</span>
+    </footer>
+  </div>
+
+  <div id="loading-overlay" class="ns-overlay" aria-live="polite">
+    <div class="ns-loading-box">
+      <div class="ns-spinner"></div>
+      <strong>Reconstructing signal…</strong>
+      <p style="color:var(--ns-text-dim);font-size:0.85rem;margin-top:0.5rem;">Running inference on your sample</p>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
