@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import io
+import os
 
 import numpy as np
 import streamlit as st
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from ui.components import (
     render_architecture_section,
@@ -92,19 +93,28 @@ def render_main_layout(app) -> None:
     render_upload_shell_close()
 
     image_array = None
+    image_pil = None
     upload_name = None
     if uploaded_file is not None:
-        upload_key = f"upload::{uploaded_file.name}::{uploaded_file.size}"
-        if st.session_state.get("last_upload_key") != upload_key:
-            st.session_state["last_upload_key"] = upload_key
-            st.session_state.pop("denoised_result", None)
-            st.session_state.pop("result_metrics", None)
+        if uploaded_file.size > int(os.environ.get("MAX_UPLOAD_MB", "50")) * 1024 * 1024:
+            st.error(f"Upload too large. Please use files smaller than {os.environ.get('MAX_UPLOAD_MB', '50')} MB.")
+        else:
+            upload_key = f"upload::{uploaded_file.name}::{uploaded_file.size}"
+            if st.session_state.get("last_upload_key") != upload_key:
+                st.session_state["last_upload_key"] = upload_key
+                st.session_state.pop("denoised_result", None)
+                st.session_state.pop("result_metrics", None)
 
-        image_bytes = uploaded_file.getvalue()
-        image = Image.open(io.BytesIO(image_bytes))
-        image_array = np.array(image)
-        upload_name = uploaded_file.name
-        st.session_state["upload_shape"] = image_array.shape
+            image_bytes = uploaded_file.getvalue()
+            try:
+                image_pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+                image_array = np.array(image_pil)
+                upload_name = uploaded_file.name
+                st.session_state["upload_shape"] = image_array.shape
+            except UnidentifiedImageError:
+                st.error("Unsupported or corrupted image file. Please upload a valid PNG, JPG, TIFF, or BMP image.")
+            except Exception as exc:
+                st.error(f"Unable to open uploaded image: {exc}")
 
     denoised_image = st.session_state.get("denoised_result")
     shape = image_array.shape if image_array is not None else st.session_state.get("upload_shape")
@@ -133,7 +143,7 @@ def render_main_layout(app) -> None:
                 progress = st.progress(0)
                 mode = st.session_state.get("denoise_mode", "Auto")
                 progress.progress(20)
-                result = app.denoise_image(image_array, mode=mode)
+                result = app.denoise_image(image_pil or image_array, mode=mode)
                 progress.progress(90)
                 progress.progress(100)
 

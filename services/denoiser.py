@@ -7,7 +7,7 @@ import threading
 import uuid
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import torch
@@ -134,15 +134,18 @@ class DenoiserService:
 
     def denoise(
         self,
-        image: np.ndarray,
+        image: Union[np.ndarray, Image.Image],
         mode: str = "unet",
     ) -> np.ndarray:
+        if isinstance(image, Image.Image):
+            image = image.convert("RGB")
+
         if mode == "brightfield":
             return brightfield_object_mask(image)
         if mode == "salt_pepper":
             return denoise_salt_pepper(image)
         if mode == "auto":
-            if estimate_salt_pepper_ratio(image) >= 0.08:
+            if estimate_salt_pepper_ratio(np.asarray(image)) >= 0.08:
                 return denoise_salt_pepper(image)
             mode = "unet"
 
@@ -168,10 +171,10 @@ class DenoiserService:
         mode: str = "auto",
     ) -> dict[str, Any]:
         """Run denoising and return metrics + saved output paths."""
-        pil = Image.open(BytesIO(file_bytes))
-        image_array = np.array(pil)
+        pil = Image.open(BytesIO(file_bytes)).convert("RGB")
+        image_array = np.asarray(pil)
 
-        denoised = self.denoise(image_array, mode=mode)
+        denoised = self.denoise(pil, mode=mode)
 
         orig_tensor = torch.from_numpy(image_array).float() / 255.0
         den_tensor = torch.from_numpy(denoised).float() / 255.0

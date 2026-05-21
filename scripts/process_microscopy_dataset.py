@@ -134,14 +134,24 @@ def find_h5_files(dataset_dir):
 
 def main():
     parser = argparse.ArgumentParser(description='Process Fluorescence Microscopy Denoising Dataset')
-    parser.add_argument('--dataset_dir', type=str, 
-                       default='/Users/samiksha/dataset_extracted/collated_image_data/collated_data',
-                       help='Path to dataset directory containing HDF5 files')
-    parser.add_argument('--csv_path', type=str,
-                       default='/Users/samiksha/dataset_extracted/DataDescription.csv',
-                       help='Path to dataset description CSV file')
-    parser.add_argument('--output_dir', type=str, default='data',
-                       help='Output directory for processed images')
+    parser.add_argument(
+        '--dataset_dir',
+        type=str,
+        default='.',
+        help='Path to dataset directory containing HDF5 files',
+    )
+    parser.add_argument(
+        '--csv_path',
+        type=str,
+        default='dataset_description.csv',
+        help='Path to dataset description CSV file',
+    )
+    parser.add_argument(
+        '--output_dir',
+        type=str,
+        default='data',
+        help='Output directory for processed images',
+    )
     parser.add_argument('--max_samples', type=int, default=None,
                        help='Maximum number of samples to process per file')
     

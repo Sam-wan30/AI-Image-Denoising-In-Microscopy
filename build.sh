@@ -3,8 +3,8 @@
 set -euo pipefail
 
 echo "==> Installing Python dependencies..."
-pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 
 if [ -n "${MODEL_URL:-}" ]; then
   echo "==> Downloading model from MODEL_URL..."

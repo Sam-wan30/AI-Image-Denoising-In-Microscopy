@@ -7,11 +7,11 @@ services:
     runtime: python
     plan: free
     buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn application:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 180 --log-level info
+    startCommand: streamlit run app.py --server.port $PORT --server.headless true
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
-        value: "3.11.9"
+        value: "3.12.2"
       - key: MODEL_PATH
         value: models/deploy/model.pt
       - key: SECRET_KEY

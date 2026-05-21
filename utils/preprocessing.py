@@ -11,21 +11,32 @@ from __future__ import annotations
 import cv2
 import numpy as np
 import torch
+from pathlib import Path
+from PIL import Image
 from typing import Tuple, Union
 
 IMAGE_SIZE = (256, 256)
 
 
-def load_grayscale(image: Union[str, np.ndarray]) -> np.ndarray:
-    """Load an image path or array as a 2D grayscale float32 array (H, W)."""
-    if isinstance(image, str):
-        img = cv2.imread(image, cv2.IMREAD_UNCHANGED)
+def load_grayscale(image: Union[str, np.ndarray, Image.Image]) -> np.ndarray:
+    """Load an image path, array, or PIL image as a 2D grayscale float32 array (H, W)."""
+    pil_source = False
+
+    if isinstance(image, Image.Image):
+        pil_source = True
+        image = image.convert("RGB")
+        img = np.asarray(image)
+    elif isinstance(image, (str, Path)):
+        img = cv2.imread(str(image), cv2.IMREAD_UNCHANGED)
         if img is None:
             raise ValueError(f"Could not load image: {image}")
     else:
         img = np.asarray(image)
 
     if img.ndim == 3:
+        if img.shape[2] == 4:
+            img = img[:, :, :3]
+
         if img.shape[2] == 1:
             img = img[:, :, 0]
         elif np.array_equal(img[:, :, 0], img[:, :, 1]) and np.array_equal(
@@ -33,7 +44,10 @@ def load_grayscale(image: Union[str, np.ndarray]) -> np.ndarray:
         ):
             img = img[:, :, 0]
         else:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            if pil_source:
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+            else:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     return img.astype(np.float32)
 
