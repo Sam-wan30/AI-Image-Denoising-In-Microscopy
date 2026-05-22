@@ -30,7 +30,16 @@ def download_model_if_configured() -> None:
     config.MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
     try:
         urllib.request.urlretrieve(config.MODEL_URL, config.MODEL_PATH)
-        logger.info("Model download complete.")
+        if not config.MODEL_PATH.exists() or config.MODEL_PATH.stat().st_size < 1024:
+            raise RuntimeError(
+                f"Downloaded model file is invalid or too small: {config.MODEL_PATH}"
+            )
+        logger.info("Model download complete (%s bytes).", config.MODEL_PATH.stat().st_size)
     except Exception as exc:
+        if config.MODEL_PATH.exists():
+            try:
+                config.MODEL_PATH.unlink()
+            except Exception:
+                pass
         logger.error("Model download failed: %s", exc)
         raise

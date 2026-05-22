@@ -13,12 +13,14 @@ import os
 from pathlib import Path
 from typing import Union
 
+import config
 import numpy as np
 import streamlit as st
 import torch
 from PIL import Image, UnidentifiedImageError
 
 from inference import detect_model_type
+from services.bootstrap import download_model_if_configured
 from src.unet_model import create_unet_model
 from ui.components import inject_global_styles
 from utils.brightfield import brightfield_object_mask
@@ -32,12 +34,12 @@ from utils.preprocessing import (
 from utils.salt_pepper import denoise_salt_pepper, estimate_salt_pepper_ratio
 
 
-DEFAULT_MODEL_PATH = Path(os.environ.get("MODEL_PATH", "models/deploy/model.pt"))
+DEFAULT_MODEL_PATH = config.MODEL_PATH
 FALLBACK_MODEL_PATHS = [
     Path("models/overfit_residual_blocks/best_model.pth"),
     Path("models/overfit/best_model.pth"),
 ]
-MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))
+MAX_UPLOAD_MB = config.MAX_UPLOAD_MB
 
 
 st.set_page_config(
@@ -230,11 +232,19 @@ class StreamlitDenoisingApp:
 
 def main() -> None:
     """Main function to run the Streamlit app."""
+    # Ensure model checkpoint is available when MODEL_URL is configured.
+    if config.MODEL_URL and not config.MODEL_PATH.exists():
+        try:
+            download_model_if_configured()
+        except Exception as exc:
+            st.error(f"Unable to download model from MODEL_URL: {exc}")
+
     # Initialize session state
     if 'model_loaded' not in st.session_state:
         st.session_state.model_loaded = False
         st.session_state.model = None
         st.session_state.model_info = None
+        st.session_state.loaded_model_path = None
     
     # Auto-load model if not loaded and model file exists
     if (

@@ -15,15 +15,11 @@ OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", BASE_DIR / "outputs"))
 # Model — prefer lean deploy checkpoint; fall back to training checkpoint
 _default_model = BASE_DIR / "models" / "deploy" / "model.pt"
 _fallback_model = BASE_DIR / "models" / "overfit" / "best_model.pth"
-MODEL_PATH = Path(
-    os.environ.get(
-        "MODEL_PATH",
-        _default_model if _default_model.exists() else _fallback_model,
-    )
-)
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", _default_model))
 
 # Optional: download checkpoint at startup (e.g. GitHub release / Hugging Face)
-MODEL_URL = os.environ.get("MODEL_URL", "").strip()
+# Accept either uppercase or lowercase env variable names just in case.
+MODEL_URL = os.environ.get("MODEL_URL", os.environ.get("model_url", "")).strip()
 
 # Inference
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))
