@@ -14,7 +14,6 @@ import os
 import argparse
 import time
 from pathlib import Path
-import matplotlib.pyplot as plt
 from typing import Union, Tuple, Optional
 import glob
 
