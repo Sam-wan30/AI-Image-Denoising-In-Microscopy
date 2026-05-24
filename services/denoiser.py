@@ -129,7 +129,7 @@ class DenoiserService:
     def _preprocess(self, image: np.ndarray) -> tuple[torch.Tensor, tuple[int, int]]:
         gray = load_grayscale(image)
         original_shape = gray.shape[:2]
-        tensor = preprocess_tensor(gray, IMAGE_SIZE)
+        tensor = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=True)
         return tensor, original_shape
 
     def denoise(

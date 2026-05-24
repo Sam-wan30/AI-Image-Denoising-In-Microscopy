@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import cv2
 import numpy as np
-import torch
 from pathlib import Path
 from PIL import Image
 from typing import Tuple, Union
@@ -83,8 +82,16 @@ def preprocess_numpy(
     return normalize_image(img)
 
 
-def to_tensor(image: np.ndarray) -> torch.Tensor:
+def to_tensor(image: np.ndarray):
     """Convert (H,W) float image to tensor (1, 1, H, W)."""
+    try:
+        import torch
+    except ImportError as exc:
+        raise ImportError(
+            "Torch is required to convert numpy arrays to tensors. "
+            "Install torch or use preprocess_tensor(..., as_tensor=False)."
+        ) from exc
+
     if image.ndim != 2:
         raise ValueError(f"Expected 2D image, got shape {image.shape}")
     return torch.from_numpy(image.copy()).float().unsqueeze(0).unsqueeze(0)
@@ -93,19 +100,31 @@ def to_tensor(image: np.ndarray) -> torch.Tensor:
 def preprocess_tensor(
     image: Union[str, np.ndarray],
     image_size: Tuple[int, int] = IMAGE_SIZE,
-) -> torch.Tensor:
-    """Preprocess and return model input tensor (1, 1, H, W)."""
-    return to_tensor(preprocess_numpy(image, image_size))
+    as_tensor: bool = False,
+):
+    """Preprocess and return model input array or tensor.
+
+    If `as_tensor=True`, a PyTorch tensor is returned, otherwise a numpy array.
+    """
+    image_np = preprocess_numpy(image, image_size)
+    return to_tensor(image_np) if as_tensor else image_np
 
 
 def postprocess_tensor(
-    output: torch.Tensor,
+    output,
     original_shape: Tuple[int, int],
     model_size: Tuple[int, int] = IMAGE_SIZE,
 ) -> np.ndarray:
     """Convert model output to uint8 grayscale (H, W), resizing to original_shape."""
-    out = output.squeeze().detach().cpu().numpy()
-    out = np.clip(out, 0.0, 1.0)
+    if output is None:
+        raise ValueError("Model output is empty")
+
+    if hasattr(output, "detach"):
+        output = output.squeeze().detach().cpu().numpy()
+    else:
+        output = np.asarray(output).squeeze()
+
+    out = np.clip(output, 0.0, 1.0)
 
     if original_shape != (model_size[1], model_size[0]):
         out = cv2.resize(

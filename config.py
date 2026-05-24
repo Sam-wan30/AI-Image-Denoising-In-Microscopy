@@ -12,9 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", BASE_DIR / "uploads"))
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", BASE_DIR / "outputs"))
 
-# Model — prefer lean deploy checkpoint; fall back to training checkpoint
-_default_model = BASE_DIR / "models" / "deploy" / "model.pt"
-_fallback_model = BASE_DIR / "models" / "overfit" / "best_model.pth"
+# Model — prefer lean ONNX deploy checkpoint; fall back to PyTorch and training checkpoints
+_default_model = BASE_DIR / "models" / "deploy" / "model.onnx"
+_fallback_model = BASE_DIR / "models" / "deploy" / "model.pt"
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", _default_model))
 
 # Optional: download checkpoint at startup (e.g. GitHub release / Hugging Face)
