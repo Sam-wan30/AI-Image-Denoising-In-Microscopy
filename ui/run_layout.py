@@ -44,7 +44,7 @@ def _render_compare_image(column, image) -> None:
                 unsafe_allow_html=True,
             )
         else:
-            st.image(image, use_container_width=True)
+            st.image(image, width='stretch')
         st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -132,7 +132,7 @@ def render_main_layout(app) -> None:
 
     if image_array is not None:
         st.markdown('<div class="ns-spacer-md"></div>', unsafe_allow_html=True)
-        if st.button("Start denoising →", type="primary", use_container_width=True):
+        if st.button("Start denoising →", type="primary", width='stretch'):
             if not model_online and st.session_state.get("denoise_mode", "Auto") in (
                 "Auto",
                 "Microscopy U-Net",
@@ -172,7 +172,7 @@ def render_main_layout(app) -> None:
             data=img_byte_arr,
             file_name=f"denoised_{st.session_state.get('upload_name', 'output.png')}",
             mime="image/png",
-            use_container_width=True,
+            width='stretch',
         )
 
     render_section_heading("04", "Architecture", "UNDER THE HOOD")
