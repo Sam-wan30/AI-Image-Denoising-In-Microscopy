@@ -1,4 +1,9 @@
-"""Thread-safe lazy-loaded denoising service for production."""
+"""Thread-safe lazy-loaded denoising service for production.
+
+This module prefers ONNXRuntime for inference when an `.onnx` model is present
+so the web service can run without a PyTorch install. PyTorch (`.pt`) checkpoints
+are still supported as a fallback when `torch` is available.
+"""
 
 from __future__ import annotations
 
@@ -10,16 +15,26 @@ from pathlib import Path
 from typing import Any, Union
 
 import numpy as np
-import torch
 from PIL import Image
 
 import config
 from services.model_utils import detect_model_type
-from src.unet_model import create_unet_model
 from utils.metrics import calculate_psnr, calculate_ssim
 from utils.preprocessing import IMAGE_SIZE, load_grayscale, postprocess_tensor, preprocess_tensor
 from utils.salt_pepper import denoise_salt_pepper, estimate_salt_pepper_ratio
 from utils.brightfield import brightfield_object_mask
+
+# Optional backends: prefer ONNXRuntime to avoid a hard PyTorch dependency in lightweight deploys.
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
+
+try:
+    # Do NOT import torch at module import time; import lazily when a .pt checkpoint is loaded.
+    import torch  # type: ignore
+except Exception:
+    torch = None
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +47,18 @@ class ModelNotReadyError(RuntimeError):
 
 
 class DenoiserService:
-    """Loads the U-Net once and runs inference on CPU (Render-friendly)."""
+    """Loads the U-Net once and runs inference on CPU (Render-friendly).
+
+    This service supports two backends:
+    - ONNXRuntime when `MODEL_PATH` points to an `.onnx` file (preferred for Render)
+    - PyTorch when `MODEL_PATH` points to a `.pt` checkpoint (requires `torch` installed)
+    """
 
     def __init__(self) -> None:
-        self.device = torch.device(config.DEVICE)
-        self.model: torch.nn.Module | None = None
+        self.device = config.DEVICE
+        self.torch = None
+        self.onnx_session = None
+        self.model: Any | None = None
         self.model_info: dict[str, Any] = {}
         self._load_error: str | None = None
         self._model_lock = threading.Lock()
@@ -67,18 +89,37 @@ class DenoiserService:
         with self._model_lock:
             if self.model is not None:
                 return
-
             path = Path(config.MODEL_PATH)
             if not path.is_file():
                 raise FileNotFoundError(
-                    f"Model not found at {path}. "
-                    "Run scripts/export_inference_checkpoint.py or set MODEL_URL."
+                    f"Model not found at {path}. Run scripts/export_inference_checkpoint.py or set MODEL_URL."
                 )
 
             logger.info("Loading model from %s", path)
-            torch.set_num_threads(1)
 
-            load_kwargs: dict[str, Any] = {"map_location": self.device}
+            # ONNX path (preferred for lightweight deploys)
+            if path.suffix.lower() == ".onnx":
+                if ort is None:
+                    raise RuntimeError("onnxruntime is not installed; cannot load .onnx model.")
+                session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+                self.onnx_session = session
+                self.model = None
+                self.model_info = {"type": "ONNX U-Net", "parameters": None, "device": "cpu", "path": str(path)}
+                self._load_error = None
+                logger.info("Loaded ONNX model: %s", path)
+                return
+
+            # PyTorch fallback
+            if torch is None:
+                raise RuntimeError(
+                    "PyTorch is not installed in this environment. To use .pt checkpoints, install torch or provide an ONNX model (.onnx)."
+                )
+
+            # Import model constructor lazily
+            from src.unet_model import create_unet_model  # local import
+
+            torch.set_num_threads(1)
+            load_kwargs: dict[str, Any] = {"map_location": config.DEVICE}
             try:
                 checkpoint = torch.load(path, weights_only=False, **load_kwargs)
             except TypeError:
@@ -86,51 +127,49 @@ class DenoiserService:
 
             if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
                 model_state_dict = checkpoint["model_state_dict"]
-                model_type = checkpoint.get("model_type") or detect_model_type(
-                    list(model_state_dict.keys())
-                )
+                model_type = checkpoint.get("model_type") or detect_model_type(list(model_state_dict.keys()))
             else:
                 model_state_dict = checkpoint
                 model_type = detect_model_type(list(model_state_dict.keys()))
 
             state_dict_keys = list(model_state_dict.keys())
             if model_type == "residual":
-                first_conv_key = [k for k in state_dict_keys if "unet.inc.double_conv.0.weight" in k][0]
-                last_conv_key = [k for k in state_dict_keys if "unet.outc.conv.weight" in k][0]
+                first_conv_key = next(k for k in state_dict_keys if "unet.inc.double_conv.0.weight" in k)
+                last_conv_key = next(k for k in state_dict_keys if "unet.outc.conv.weight" in k)
             else:
-                first_conv_key = [k for k in state_dict_keys if "inc.double_conv.0.weight" in k][0]
-                last_conv_key = [k for k in state_dict_keys if "outc.conv.weight" in k][0]
+                first_conv_key = next(k for k in state_dict_keys if "inc.double_conv.0.weight" in k)
+                last_conv_key = next(k for k in state_dict_keys if "outc.conv.weight" in k)
 
             in_channels = model_state_dict[first_conv_key].shape[1]
             out_channels = model_state_dict[last_conv_key].shape[0]
 
-            model = create_unet_model(
-                model_type=model_type,
-                in_channels=in_channels,
-                out_channels=out_channels,
-            )
+            model = create_unet_model(model_type=model_type, in_channels=in_channels, out_channels=out_channels)
             missing, unexpected = model.load_state_dict(model_state_dict, strict=False)
             if missing or unexpected:
-                raise RuntimeError(
-                    f"Incompatible checkpoint: missing={len(missing)}, unexpected={len(unexpected)}"
-                )
+                raise RuntimeError(f"Incompatible checkpoint: missing={len(missing)}, unexpected={len(unexpected)}")
 
-            model.to(self.device)
+            model.to(config.DEVICE)
             model.eval()
 
             self.model = model
-            self.model_info = {
-                "type": model_type,
-                "parameters": sum(p.numel() for p in model.parameters()),
-            }
+            self.model_info = {"type": model_type, "parameters": sum(p.numel() for p in model.parameters()), "device": config.DEVICE}
             self._load_error = None
             logger.info("Model loaded (%s U-Net)", model_type)
 
-    def _preprocess(self, image: np.ndarray) -> tuple[torch.Tensor, tuple[int, int]]:
+    def _preprocess(self, image: np.ndarray) -> tuple[Any, tuple[int, int]]:
         gray = load_grayscale(image)
         original_shape = gray.shape[:2]
-        tensor = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=True)
+        # Return a torch.Tensor when PyTorch backend is used; otherwise a numpy array for ONNX.
+        tensor = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=True) if torch is not None else preprocess_tensor(gray, IMAGE_SIZE, as_tensor=False)
         return tensor, original_shape
+
+    def _preprocess_numpy(self, image: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
+        gray = load_grayscale(image)
+        original_shape = gray.shape[:2]
+        arr = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=False)
+        # ONNXRuntime expects shape (N, C, H, W)
+        inp = np.expand_dims(np.expand_dims(arr.astype(np.float32), axis=0), axis=0)
+        return inp, original_shape
 
     def denoise(
         self,
@@ -154,12 +193,23 @@ class DenoiserService:
                 raise ModelNotReadyError(self._load_error)
             self._load_model()
         if self.model is None:
+            # If ONNX session loaded, run it
+            if self.onnx_session is not None:
+                inp, original_shape = self._preprocess_numpy(image)
+                input_name = self.onnx_session.get_inputs()[0].name
+                out = self.onnx_session.run(None, {input_name: inp})[0]
+                return postprocess_tensor(out, original_shape, IMAGE_SIZE)
             raise ModelNotReadyError("Model is not loaded.")
 
+        # PyTorch inference path (model is a torch.nn.Module)
         input_tensor, original_shape = self._preprocess(image)
-        input_tensor = input_tensor.to(self.device)
+        if hasattr(input_tensor, "to"):
+            input_tensor = input_tensor.to(config.DEVICE)
 
-        with torch.inference_mode():
+        if torch is not None:
+            with torch.inference_mode():
+                output_tensor = self.model(input_tensor)
+        else:
             output_tensor = self.model(input_tensor)
 
         return postprocess_tensor(output_tensor, original_shape, IMAGE_SIZE)
@@ -176,10 +226,15 @@ class DenoiserService:
 
         denoised = self.denoise(pil, mode=mode)
 
-        orig_tensor = torch.from_numpy(image_array).float() / 255.0
-        den_tensor = torch.from_numpy(denoised).float() / 255.0
-        psnr = float(calculate_psnr(den_tensor, orig_tensor, max_val=1.0))
-        ssim = float(calculate_ssim(den_tensor, orig_tensor, max_val=1.0))
+        # Use numpy-based metrics to avoid requiring torch during runtime
+        try:
+            orig_norm = image_array.astype(np.float32) / 255.0
+            den_norm = denoised.astype(np.float32) / 255.0
+            psnr = float(calculate_psnr(den_norm, orig_norm, max_val=1.0))
+            ssim = float(calculate_ssim(den_norm, orig_norm, max_val=1.0))
+        except Exception:
+            psnr = 0.0
+            ssim = 0.0
 
         job_id = uuid.uuid4().hex[:12]
         out_name = f"denoised_{job_id}.png"
