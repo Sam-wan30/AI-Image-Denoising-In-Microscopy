@@ -23,3 +23,5 @@ models/deploy/model.pt
 
 # Logs
 *.log
+# Ignore temporary onnx artifacts
+models/deploy/*.onnx.data
