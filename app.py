@@ -34,10 +34,12 @@ from utils.salt_pepper import denoise_salt_pepper, estimate_salt_pepper_ratio
 
 
 DEFAULT_MODEL_PATH = config.MODEL_PATH
-# Only use ONNX for deployment; remove .pt fallbacks to avoid PyTorch dependency and weights_only errors.
 FALLBACK_MODEL_PATHS = [
     DEFAULT_MODEL_PATH,
     Path("models/deploy/model.onnx"),
+    Path("models/overfit_residual_blocks/best_model.pth"),
+    Path("models/deploy/model.pt"),
+    Path("models/best_model.pth"),
 ]
 MAX_UPLOAD_MB = config.MAX_UPLOAD_MB
 
@@ -54,18 +56,39 @@ inject_global_styles()
 
 def resolve_default_model_path() -> Path:
     """Return the first available model path or the configured default."""
-    if DEFAULT_MODEL_PATH.exists():
-        return DEFAULT_MODEL_PATH
     for fallback in FALLBACK_MODEL_PATHS:
-        if fallback.exists():
+        if is_usable_model_path(fallback):
             return fallback
     return DEFAULT_MODEL_PATH
+
+
+def is_usable_model_path(model_path: Path) -> bool:
+    """Return whether a model path exists and has its required sidecar files."""
+    model_path = Path(model_path)
+    if not model_path.exists():
+        return False
+
+    if model_path.suffix.lower() == ".onnx":
+        external_data_path = model_path.with_name(model_path.name + ".data")
+        # The current deploy ONNX is a tiny external-data stub. If the sidecar
+        # weights file is missing, skip it and use the local PyTorch checkpoint.
+        if model_path.stat().st_size < 5_000_000 and not external_data_path.exists():
+            return False
+
+    return True
 
 
 def _load_onnx_model(model_path: str) -> tuple[ort.InferenceSession, dict]:
     """Load an ONNX model from disk and return a session and metadata."""
     if ort is None:
         raise RuntimeError("onnxruntime is required to load ONNX models.")
+    onnx_path = Path(model_path)
+    external_data_path = onnx_path.with_name(onnx_path.name + ".data")
+    if onnx_path.stat().st_size < 5_000_000 and not external_data_path.exists():
+        raise RuntimeError(
+            f"ONNX external weights file is missing: {external_data_path}. "
+            "Use models/deploy/model.pt or export/copy model.onnx.data."
+        )
     session = ort.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
     info = {
         "type": "ONNX U-Net",
@@ -230,13 +253,18 @@ class StreamlitDenoisingApp:
             return None
 
         try:
-            input_tensor, original_shape = self.preprocess_image(image)
             model = st.session_state.model
 
             if isinstance(model, ort.InferenceSession):
+                input_array = preprocess_tensor(image, IMAGE_SIZE, as_tensor=False)
+                input_array = input_array[np.newaxis, np.newaxis, :, :].astype(np.float32)
+                original_shape = load_grayscale(image).shape[:2]
                 input_name = model.get_inputs()[0].name
-                output = model.run(None, {input_name: input_tensor.astype(np.float32)})[0]
+                output = model.run(None, {input_name: input_array})[0]
                 return postprocess_tensor(output, original_shape, IMAGE_SIZE)
+
+            input_tensor, original_shape = self.preprocess_image(image)
+            import torch
 
             input_tensor = input_tensor.to(self.device)
             with torch.inference_mode():
