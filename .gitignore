@@ -14,7 +14,9 @@ outputs/*
 
 # Large checkpoints — use Git LFS or MODEL_URL (see DEPLOY.md)
 models/**/*.pth
+models/deploy/*.onnx
 models/deploy/model.pt
+AI-Image-Denoising-In-Microscopy/
 
 # IDE / OS
 .DS_Store
@@ -23,3 +25,5 @@ models/deploy/model.pt
 
 # Logs
 *.log
+# Ignore temporary onnx artifacts
+models/deploy/*.onnx.data

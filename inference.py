@@ -14,7 +14,6 @@ import os
 import argparse
 import time
 from pathlib import Path
-import matplotlib.pyplot as plt
 from typing import Union, Tuple, Optional
 import glob
 
@@ -66,8 +65,8 @@ class DenoisingInference:
         if not os.path.exists(self.model_path):
             raise FileNotFoundError(f"Model file not found: {self.model_path}")
         
-        # Load checkpoint
-        checkpoint = torch.load(self.model_path, map_location=self.device)
+        # Load checkpoint using weights_only=False so older serialized objects can load
+        checkpoint = torch.load(self.model_path, map_location=self.device, weights_only=False)
         
         # Extract model configuration
         if 'model_state_dict' in checkpoint:
@@ -135,7 +134,7 @@ class DenoisingInference:
             raise ValueError(f"Could not load image: {image_path}")
 
         original_shape = get_original_shape(image_path)
-        image_tensor = preprocess_tensor(image_path, IMAGE_SIZE)
+        image_tensor = preprocess_tensor(image_path, IMAGE_SIZE, as_tensor=True)
         return image_tensor, original_image, original_shape
 
     def postprocess_output(

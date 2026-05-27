@@ -1,18 +1,11 @@
-# Production dependencies (Flask + PyTorch CPU) — Render.com free tier
-# Install PyTorch CPU wheels first (smaller than default CUDA build)
+# Production dependencies for the Streamlit deployment.
+# Use ONNX Runtime for a smaller deployment footprint.
 
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2
-torchvision==0.17.2
-
-flask>=3.0.0,<4
-gunicorn>=22.0.0,<24
-werkzeug>=3.0.0,<4
-
+streamlit>=1.28.0,<2.0.0
 numpy>=1.24.0,<2.0.0
-opencv-python-headless>=4.8.0,<5
-pillow>=10.0.0,<12
-h5py>=3.10.0,<4
-
-# Optional: Streamlit local dev (not used on Render)
-# streamlit>=1.28.0
+opencv-python-headless>=4.8.1,<5.0.0
+pillow>=10.0.0,<12.0.0
+onnxruntime>=1.15.0,<2.0.0
+# Web / production
+Flask>=2.2.0
+gunicorn>=20.1.0

@@ -1,1 +1,1 @@
-web: gunicorn application:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 180 --preload
+web: streamlit run app.py --server.address 0.0.0.0 --server.port $PORT --server.headless true
