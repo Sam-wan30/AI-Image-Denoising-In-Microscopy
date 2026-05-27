@@ -78,7 +78,11 @@ def render_main_layout(app) -> None:
         if model_online:
             st.success("Model loaded")
             if info:
-                st.caption(f"{info['type']} U-Net · {info['parameters']:,} params")
+                parameter_count = info.get("parameters")
+                parameter_label = (
+                    f"{parameter_count:,}" if isinstance(parameter_count, int) else "N/A"
+                )
+                st.caption(f"{info['type']} · {parameter_label} params")
         else:
             st.warning("Load a model to enable U-Net denoising.")
 
