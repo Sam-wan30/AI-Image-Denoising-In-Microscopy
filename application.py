@@ -160,11 +160,6 @@ def create_app() -> Flask:
             return jsonify({"error": "File not found."}), 404
         return send_from_directory(config.OUTPUT_DIR, safe, as_attachment=True)
 
-    @app.route("/favicon.ico")
-    def favicon():
-        """Return 404 for favicon requests to avoid JSON parsing errors."""
-        return jsonify({"error": "Favicon not found"}), 404
-
     return app
 
 
