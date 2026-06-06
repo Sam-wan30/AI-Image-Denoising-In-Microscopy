@@ -63,14 +63,23 @@ def create_app() -> Flask:
     @app.route("/health")
     def health():
         """Render health check — always 200 if the web process is up."""
-        svc = get_denoiser_service()
-        return jsonify(
-            {
-                "status": "ok",
-                "service": "neuroscope-denoising",
-                "model": svc.status,
-            }
-        ), 200
+        try:
+            svc = get_denoiser_service()
+            return jsonify(
+                {
+                    "status": "ok",
+                    "service": "neuroscope-denoising",
+                    "model": svc.status,
+                }
+            ), 200
+        except Exception as exc:
+            return jsonify(
+                {
+                    "status": "ok",
+                    "service": "neuroscope-denoising",
+                    "model": {"ready": False, "error": str(exc)},
+                }
+            ), 200
 
     @app.route("/api/status")
     def api_status():
