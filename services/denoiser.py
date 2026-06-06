@@ -8,6 +8,7 @@ are still supported as a fallback when `torch` is available.
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import uuid
 from io import BytesIO
@@ -23,6 +24,11 @@ from utils.metrics import calculate_psnr, calculate_ssim
 from utils.preprocessing import IMAGE_SIZE, load_grayscale, postprocess_tensor, preprocess_tensor
 from utils.salt_pepper import denoise_salt_pepper, estimate_salt_pepper_ratio
 from utils.brightfield import brightfield_object_mask
+
+# Configure ONNX Runtime to use CPU-only execution and suppress GPU detection warnings
+# This prevents GPU provider detection errors on CPU-only environments like Render
+os.environ["ORT_TENSORRT_ENGINE_CACHE_ENABLE"] = "0"
+os.environ["ORT_DISABLE_PROVIDER_TYPE_STRING"] = "TensorrtExecutionProvider,CUDAExecutionProvider,ROCmExecutionProvider,CoreMLExecutionProvider"
 
 # Optional backends: prefer ONNXRuntime to avoid a hard PyTorch dependency in lightweight deploys.
 try:
@@ -106,7 +112,7 @@ class DenoiserService:
                 self.model = None
                 self.model_info = {"type": "ONNX U-Net", "parameters": None, "device": "cpu", "path": str(path)}
                 self._load_error = None
-                logger.info("Loaded ONNX model: %s", path)
+                logger.info("Loaded ONNX model: %s (Execution Provider: CPUExecutionProvider)", path)
                 return
 
             # PyTorch fallback
