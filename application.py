@@ -74,7 +74,10 @@ def create_app() -> Flask:
 
     @app.route("/api/status")
     def api_status():
-        return jsonify(get_denoiser_service().status)
+        try:
+            return jsonify(get_denoiser_service().status)
+        except Exception as exc:
+            return jsonify({"ready": False, "error": str(exc)}), 500
 
     @app.route("/api/denoise", methods=["POST"])
     def api_denoise():
