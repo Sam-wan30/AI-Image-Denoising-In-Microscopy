@@ -166,16 +166,5 @@ def create_app() -> Flask:
 app = create_app()
 
 
-def _warm_model_background() -> None:
-    try:
-        get_denoiser_service().warm_up()
-    except Exception:
-        pass
-
-
-# Pre-load model in background so first user request is faster
-threading.Thread(target=_warm_model_background, daemon=True).start()
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=config.PORT, debug=config.DEBUG)

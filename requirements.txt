@@ -1,7 +1,6 @@
-# Production dependencies for the Streamlit deployment.
+# Production dependencies for Flask deployment.
 # Use ONNX Runtime for a smaller deployment footprint.
 
-streamlit>=1.28.0,<2.0.0
 numpy>=1.24.0,<2.0.0
 opencv-python-headless>=4.8.1,<5.0.0
 pillow>=10.0.0,<12.0.0
