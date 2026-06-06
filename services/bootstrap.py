@@ -20,10 +20,15 @@ def ensure_directories() -> None:
 
 def download_model_if_configured() -> None:
     """Download MODEL_URL to MODEL_PATH when the file is not present."""
+    logger.info("MODEL_URL: %s", config.MODEL_URL if config.MODEL_URL else "Not set")
+    logger.info("MODEL_PATH: %s", config.MODEL_PATH)
+
     if not config.MODEL_URL:
+        logger.warning("MODEL_URL not set - model must be present in repository")
         return
+
     if config.MODEL_PATH.exists():
-        logger.info("Model already present at %s", config.MODEL_PATH)
+        logger.info("Model already present at %s (%.2f MB)", config.MODEL_PATH, config.MODEL_PATH.stat().st_size / (1024 * 1024))
         return
 
     logger.info("Downloading model from MODEL_URL to %s ...", config.MODEL_PATH)
@@ -34,7 +39,7 @@ def download_model_if_configured() -> None:
             raise RuntimeError(
                 f"Downloaded model file is invalid or too small: {config.MODEL_PATH}"
             )
-        logger.info("Model download complete (%s bytes).", config.MODEL_PATH.stat().st_size)
+        logger.info("Model download complete (%.2f MB).", config.MODEL_PATH.stat().st_size / (1024 * 1024))
     except Exception as exc:
         if config.MODEL_PATH.exists():
             try:

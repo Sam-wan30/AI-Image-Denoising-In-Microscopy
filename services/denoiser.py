@@ -96,9 +96,22 @@ class DenoiserService:
             if self.model is not None:
                 return
             path = Path(config.MODEL_PATH)
+
+            # Startup diagnostics
+            logger.info("=" * 70)
+            logger.info("MODEL LOADING DIAGNOSTICS")
+            logger.info("=" * 70)
+            logger.info("MODEL_URL: %s", config.MODEL_URL if config.MODEL_URL else "Not set")
+            logger.info("MODEL_PATH: %s", path)
+            logger.info("File exists: %s", path.is_file())
+            if path.is_file():
+                logger.info("File size: %.2f MB", path.stat().st_size / (1024 * 1024))
+            logger.info("BASE_DIR: %s", config.BASE_DIR)
+            logger.info("=" * 70)
+
             if not path.is_file():
                 raise FileNotFoundError(
-                    f"Model not found at {path}. Run scripts/export_inference_checkpoint.py or set MODEL_URL."
+                    f"Model not found at {path}. Set MODEL_URL environment variable or ensure model is included in deployment."
                 )
 
             logger.info("Loading model from %s", path)

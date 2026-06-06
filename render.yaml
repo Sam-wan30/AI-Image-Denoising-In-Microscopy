@@ -4,7 +4,7 @@ services:
     name: neuroscope-denoising
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: chmod +x build.sh && ./build.sh
     startCommand: gunicorn application:app --bind 0.0.0.0:$PORT --workers 1 --timeout 180
     envVars:
       - key: PYTHON_VERSION
@@ -19,3 +19,5 @@ services:
         value: "10"
       - key: PORT
         value: "5000"
+      - key: MODEL_URL
+        sync: false
