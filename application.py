@@ -162,8 +162,8 @@ def create_app() -> Flask:
 
     @app.route("/favicon.ico")
     def favicon():
-        """Return 204 No Content for favicon requests to avoid 500 errors."""
-        return "", 204
+        """Return 404 for favicon requests to avoid JSON parsing errors."""
+        return jsonify({"error": "Favicon not found"}), 404
 
     return app
 
