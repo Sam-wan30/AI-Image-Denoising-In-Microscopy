@@ -37,21 +37,6 @@ def create_app() -> Flask:
     except Exception:
         logger.warning("Model download skipped or failed; will retry on first request.")
 
-    # Validate model exists at startup
-    model_path = Path(config.MODEL_PATH)
-    if not model_path.is_file():
-        logger.error("=" * 70)
-        logger.error("MODEL VALIDATION FAILED")
-        logger.error("=" * 70)
-        logger.error("MODEL_PATH: %s", model_path)
-        logger.error("File exists: %s", model_path.is_file())
-        logger.error("MODEL_URL: %s", config.MODEL_URL if config.MODEL_URL else "Not set")
-        logger.error("=" * 70)
-        logger.error("CRITICAL: Model file not found. Application cannot start.")
-        logger.error("SOLUTION: Set MODEL_URL environment variable to download model during build.")
-        logger.error("=" * 70)
-        raise RuntimeError(f"Model not found at {model_path}. Set MODEL_URL environment variable.")
-
     app = Flask(
         __name__,
         static_folder="static",
