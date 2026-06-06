@@ -32,13 +32,7 @@ jobs:
           MODEL_URL: ${{ secrets.MODEL_URL }}
         run: |
           echo "Downloading model from MODEL_URL..."
-          python - <<'PY'
-import os, urllib.request
-url = os.environ['MODEL_URL']
-out = 'models/deploy/model.pt'
-urllib.request.urlretrieve(url, out)
-print('Downloaded ->', out)
-PY
+          python -c "import os, urllib.request; url = os.environ['MODEL_URL']; out = 'models/deploy/model.pt'; urllib.request.urlretrieve(url, out); print('Downloaded ->', out)"
 
       - name: Verify checkpoint exists
         run: |
