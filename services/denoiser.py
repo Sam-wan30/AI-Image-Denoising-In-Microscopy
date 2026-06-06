@@ -75,13 +75,21 @@ class DenoiserService:
 
     @property
     def status(self) -> dict[str, Any]:
-        return {
-            "ready": self.is_ready,
-            "error": self._load_error,
-            "model_path": str(config.MODEL_PATH),
-            "device": str(self.device),
-            **self.model_info,
-        }
+        try:
+            return {
+                "ready": self.is_ready,
+                "error": self._load_error,
+                "model_path": str(config.MODEL_PATH),
+                "device": str(self.device),
+                **self.model_info,
+            }
+        except Exception:
+            return {
+                "ready": False,
+                "error": "Status check failed",
+                "model_path": str(config.MODEL_PATH),
+                "device": "unknown",
+            }
 
     def warm_up(self) -> None:
         """Load model weights (call from a background thread on startup)."""
