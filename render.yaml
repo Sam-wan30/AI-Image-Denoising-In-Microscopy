@@ -21,3 +21,5 @@ services:
         value: "5000"
       - key: MODEL_URL
         sync: false
+      - key: QUANTIZE_ONNX
+        value: "1"
