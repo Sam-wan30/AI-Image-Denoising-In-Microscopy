@@ -22,7 +22,10 @@ MODEL_PATH = Path(os.environ.get("MODEL_PATH", _default_model))
 MODEL_URL = os.environ.get("MODEL_URL", os.environ.get("model_url", "")).strip()
 
 # Inference
-MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))
+try:
+    MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))
+except (ValueError, TypeError):
+    MAX_UPLOAD_MB = 50
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 DEVICE = os.environ.get("DEVICE", "cpu")
 
@@ -31,4 +34,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-change-me-in-production")
 DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
 
 # Gunicorn / Render
-PORT = int(os.environ.get("PORT", "5000"))
+try:
+    PORT = int(os.environ.get("PORT", "5000"))
+except (ValueError, TypeError):
+    PORT = 5000

@@ -84,48 +84,52 @@ def create_app() -> Flask:
     @app.route("/api/status")
     def api_status():
         try:
-            return jsonify(get_denoiser_service().status)
+            status = get_denoiser_service().status
+            if not status or not isinstance(status, dict):
+                return jsonify({"ready": False, "error": "Invalid status response"}), 500
+            return jsonify(status)
         except Exception as exc:
+            logger.exception("API status failed")
             return jsonify({"ready": False, "error": str(exc)}), 500
 
     @app.route("/api/denoise", methods=["POST"])
     def api_denoise():
-        svc = get_denoiser_service()
-        if not svc.is_ready:
-            try:
-                svc.warm_up()
-            except Exception as exc:
-                return jsonify({"success": False, "error": str(exc)}), 503
-
-        if not svc.is_ready:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": svc.status.get("error") or "Model is still loading. Try again shortly.",
-                }
-            ), 503
-
-        if "image" not in request.files:
-            return jsonify({"success": False, "error": "No image uploaded."}), 400
-
-        file = request.files["image"]
-        if not file or not file.filename:
-            return jsonify({"success": False, "error": "Empty file."}), 400
-
-        ext = Path(file.filename).suffix.lower()
-        if ext not in config.ALLOWED_EXTENSIONS:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": f"Unsupported format. Allowed: {', '.join(sorted(config.ALLOWED_EXTENSIONS))}",
-                }
-            ), 400
-
-        mode = request.form.get("mode", "auto").lower()
-        if mode not in ("auto", "unet", "salt_pepper", "brightfield"):
-            mode = "auto"
-
         try:
+            svc = get_denoiser_service()
+            if not svc.is_ready:
+                try:
+                    svc.warm_up()
+                except Exception as exc:
+                    return jsonify({"success": False, "error": str(exc)}), 503
+
+            if not svc.is_ready:
+                return jsonify(
+                    {
+                        "success": False,
+                        "error": svc.status.get("error") or "Model is still loading. Try again shortly.",
+                    }
+                ), 503
+
+            if "image" not in request.files:
+                return jsonify({"success": False, "error": "No image uploaded."}), 400
+
+            file = request.files["image"]
+            if not file or not file.filename:
+                return jsonify({"success": False, "error": "Empty file."}), 400
+
+            ext = Path(file.filename).suffix.lower()
+            if ext not in config.ALLOWED_EXTENSIONS:
+                return jsonify(
+                    {
+                        "success": False,
+                        "error": f"Unsupported format. Allowed: {', '.join(sorted(config.ALLOWED_EXTENSIONS))}",
+                    }
+                ), 400
+
+            mode = request.form.get("mode", "auto").lower()
+            if mode not in ("auto", "unet", "salt_pepper", "brightfield"):
+                mode = "auto"
+
             raw = file.read()
             upload_path = config.UPLOAD_DIR / f"upload_{Path(file.filename).name}"
             upload_path.write_bytes(raw)
