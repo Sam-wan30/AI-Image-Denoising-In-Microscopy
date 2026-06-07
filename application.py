@@ -100,6 +100,7 @@ def create_app() -> Flask:
                 try:
                     svc.warm_up()
                 except Exception as exc:
+                    logger.error("Model warm-up failed: %s", exc)
                     return jsonify({"success": False, "error": str(exc)}), 503
 
             if not svc.is_ready:
@@ -150,20 +151,25 @@ def create_app() -> Flask:
                 img.save(buf, format="PNG")
                 return base64.b64encode(buf.getvalue()).decode("ascii")
 
-            return jsonify(
-                {
-                    "success": True,
-                    "psnr": result["psnr"],
-                    "ssim": result["ssim"],
-                    "download_url": f"/api/download/{result['output_filename']}",
-                    "original_b64": to_b64(original),
-                    "denoised_b64": to_b64(denoised),
-                    "width": result["width"],
-                    "height": result["height"],
-                }
-            )
+            response_data = {
+                "success": True,
+                "psnr": result["psnr"],
+                "ssim": result["ssim"],
+                "download_url": f"/api/download/{result['output_filename']}",
+                "original_b64": to_b64(original),
+                "denoised_b64": to_b64(denoised),
+                "width": result["width"],
+                "height": result["height"],
+            }
+
+            logger.info("Denoise completed successfully for %s", file.filename)
+            return jsonify(response_data)
         except ModelNotReadyError as exc:
+            logger.error("Model not ready: %s", exc)
             return jsonify({"success": False, "error": str(exc)}), 503
+        except MemoryError as exc:
+            logger.error("Memory error during denoise: %s", exc)
+            return jsonify({"success": False, "error": "Insufficient memory. Try a smaller image."}), 507
         except Exception as exc:
             logger.exception("Denoise failed")
             return jsonify({"success": False, "error": str(exc)}), 500
