@@ -12,14 +12,11 @@ BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", BASE_DIR / "uploads"))
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", BASE_DIR / "outputs"))
 
-# Model — prefer lean ONNX deploy checkpoint; fall back to PyTorch and training checkpoints
-_default_model = BASE_DIR / "models" / "deploy" / "model.onnx"
-_fallback_model = BASE_DIR / "models" / "deploy" / "model.pt"
+# Model path - supports PyTorch checkpoints
+_default_model = BASE_DIR / "models" / "deploy" / "model.pt"
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", _default_model))
 
-# Optional: download checkpoint at startup (e.g. GitHub release / Hugging Face)
-# Accept either uppercase or lowercase env variable names just in case.
-MODEL_URL = os.environ.get("MODEL_URL", os.environ.get("model_url", "")).strip()
+
 
 # Inference
 try:
@@ -33,7 +30,7 @@ DEVICE = os.environ.get("DEVICE", "cpu")
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-change-me-in-production")
 DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
 
-# Gunicorn / Render
+# Server port
 try:
     PORT = int(os.environ.get("PORT", "5000"))
 except (ValueError, TypeError):

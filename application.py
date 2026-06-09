@@ -1,8 +1,7 @@
 """
-Flask production app for AI Microscopy Image Denoising (Render / gunicorn).
+Flask web app for AI Microscopy Image Denoising.
 
 Local dev:  python application.py
-Production: gunicorn application:app
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ from PIL import Image
 from werkzeug.exceptions import RequestEntityTooLarge
 
 import config
-from services.bootstrap import download_model_if_configured, ensure_directories
+from services.bootstrap import ensure_directories
 from services.denoiser import ModelNotReadyError, get_denoiser_service
 
 logging.basicConfig(
@@ -31,11 +30,6 @@ logger = logging.getLogger(__name__)
 
 def create_app() -> Flask:
     ensure_directories()
-
-    try:
-        download_model_if_configured()
-    except Exception:
-        logger.warning("Model download skipped or failed; will retry on first request.")
 
     app = Flask(
         __name__,
@@ -62,7 +56,7 @@ def create_app() -> Flask:
 
     @app.route("/health")
     def health():
-        """Render health check — always 200 if the web process is up."""
+        """Health check — always 200 if the web process is up."""
         try:
             svc = get_denoiser_service()
             return jsonify(

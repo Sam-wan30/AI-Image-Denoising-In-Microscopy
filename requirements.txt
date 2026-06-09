@@ -1,10 +1,5 @@
-# Production dependencies for Flask deployment.
-# Use ONNX Runtime for a smaller deployment footprint.
-
 numpy>=1.24.0,<2.0.0
 opencv-python-headless>=4.8.1,<5.0.0
 pillow>=10.0.0,<12.0.0
 onnxruntime>=1.15.0,<2.0.0
-# Web / production
 Flask>=2.2.0
-gunicorn>=20.1.0
