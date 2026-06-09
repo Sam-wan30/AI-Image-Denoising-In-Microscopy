@@ -1,8 +1,7 @@
 """
-Flask production app for AI Microscopy Image Denoising (Render / gunicorn).
+Flask web app for AI Microscopy Image Denoising.
 
 Local dev:  python application.py
-Production: gunicorn application:app
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ from PIL import Image
 from werkzeug.exceptions import RequestEntityTooLarge
 
 import config
-from services.bootstrap import download_model_if_configured, ensure_directories
+from services.bootstrap import ensure_directories
 from services.denoiser import ModelNotReadyError, get_denoiser_service
 
 logging.basicConfig(
@@ -31,11 +30,6 @@ logger = logging.getLogger(__name__)
 
 def create_app() -> Flask:
     ensure_directories()
-
-    try:
-        download_model_if_configured()
-    except Exception:
-        logger.warning("Model download skipped or failed; will retry on first request.")
 
     app = Flask(
         __name__,
@@ -62,58 +56,75 @@ def create_app() -> Flask:
 
     @app.route("/health")
     def health():
-        """Render health check — always 200 if the web process is up."""
-        svc = get_denoiser_service()
-        return jsonify(
-            {
-                "status": "ok",
-                "service": "neuroscope-denoising",
-                "model": svc.status,
-            }
-        ), 200
+        """Health check — always 200 if the web process is up."""
+        try:
+            svc = get_denoiser_service()
+            return jsonify(
+                {
+                    "status": "ok",
+                    "service": "neuroscope-denoising",
+                    "model": svc.status,
+                }
+            ), 200
+        except Exception as exc:
+            return jsonify(
+                {
+                    "status": "ok",
+                    "service": "neuroscope-denoising",
+                    "model": {"ready": False, "error": str(exc)},
+                }
+            ), 200
 
     @app.route("/api/status")
     def api_status():
-        return jsonify(get_denoiser_service().status)
+        try:
+            status = get_denoiser_service().status
+            if not status or not isinstance(status, dict):
+                return jsonify({"ready": False, "error": "Invalid status response"}), 500
+            return jsonify(status)
+        except Exception as exc:
+            logger.exception("API status failed")
+            return jsonify({"ready": False, "error": str(exc)}), 500
 
     @app.route("/api/denoise", methods=["POST"])
     def api_denoise():
-        svc = get_denoiser_service()
-        if not svc.is_ready:
-            try:
-                svc.warm_up()
-            except Exception as exc:
-                return jsonify({"success": False, "error": str(exc)}), 503
-
-        if not svc.is_ready:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": svc.status.get("error") or "Model is still loading. Try again shortly.",
-                }
-            ), 503
-
-        if "image" not in request.files:
-            return jsonify({"success": False, "error": "No image uploaded."}), 400
-
-        file = request.files["image"]
-        if not file or not file.filename:
-            return jsonify({"success": False, "error": "Empty file."}), 400
-
-        ext = Path(file.filename).suffix.lower()
-        if ext not in config.ALLOWED_EXTENSIONS:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": f"Unsupported format. Allowed: {', '.join(sorted(config.ALLOWED_EXTENSIONS))}",
-                }
-            ), 400
-
-        mode = request.form.get("mode", "auto").lower()
-        if mode not in ("auto", "unet", "salt_pepper", "brightfield"):
-            mode = "auto"
-
         try:
+            svc = get_denoiser_service()
+            if not svc.is_ready:
+                try:
+                    svc.warm_up()
+                except Exception as exc:
+                    logger.error("Model warm-up failed: %s", exc)
+                    return jsonify({"success": False, "error": str(exc)}), 503
+
+            if not svc.is_ready:
+                return jsonify(
+                    {
+                        "success": False,
+                        "error": svc.status.get("error") or "Model is still loading. Try again shortly.",
+                    }
+                ), 503
+
+            if "image" not in request.files:
+                return jsonify({"success": False, "error": "No image uploaded."}), 400
+
+            file = request.files["image"]
+            if not file or not file.filename:
+                return jsonify({"success": False, "error": "Empty file."}), 400
+
+            ext = Path(file.filename).suffix.lower()
+            if ext not in config.ALLOWED_EXTENSIONS:
+                return jsonify(
+                    {
+                        "success": False,
+                        "error": f"Unsupported format. Allowed: {', '.join(sorted(config.ALLOWED_EXTENSIONS))}",
+                    }
+                ), 400
+
+            mode = request.form.get("mode", "auto").lower()
+            if mode not in ("auto", "unet", "salt_pepper", "brightfield"):
+                mode = "auto"
+
             raw = file.read()
             upload_path = config.UPLOAD_DIR / f"upload_{Path(file.filename).name}"
             upload_path.write_bytes(raw)
@@ -134,20 +145,25 @@ def create_app() -> Flask:
                 img.save(buf, format="PNG")
                 return base64.b64encode(buf.getvalue()).decode("ascii")
 
-            return jsonify(
-                {
-                    "success": True,
-                    "psnr": result["psnr"],
-                    "ssim": result["ssim"],
-                    "download_url": f"/api/download/{result['output_filename']}",
-                    "original_b64": to_b64(original),
-                    "denoised_b64": to_b64(denoised),
-                    "width": result["width"],
-                    "height": result["height"],
-                }
-            )
+            response_data = {
+                "success": True,
+                "psnr": result["psnr"],
+                "ssim": result["ssim"],
+                "download_url": f"/api/download/{result['output_filename']}",
+                "original_b64": to_b64(original),
+                "denoised_b64": to_b64(denoised),
+                "width": result["width"],
+                "height": result["height"],
+            }
+
+            logger.info("Denoise completed successfully for %s", file.filename)
+            return jsonify(response_data)
         except ModelNotReadyError as exc:
+            logger.error("Model not ready: %s", exc)
             return jsonify({"success": False, "error": str(exc)}), 503
+        except MemoryError as exc:
+            logger.error("Memory error during denoise: %s", exc)
+            return jsonify({"success": False, "error": "Insufficient memory. Try a smaller image."}), 507
         except Exception as exc:
             logger.exception("Denoise failed")
             return jsonify({"success": False, "error": str(exc)}), 500
@@ -160,21 +176,15 @@ def create_app() -> Flask:
             return jsonify({"error": "File not found."}), 404
         return send_from_directory(config.OUTPUT_DIR, safe, as_attachment=True)
 
+    @app.route("/favicon.ico")
+    def favicon():
+        """Return 404 for favicon requests to avoid JSON parsing errors."""
+        return jsonify({"error": "Favicon not found"}), 404
+
     return app
 
 
 app = create_app()
-
-
-def _warm_model_background() -> None:
-    try:
-        get_denoiser_service().warm_up()
-    except Exception:
-        pass
-
-
-# Pre-load model in background so first user request is faster
-threading.Thread(target=_warm_model_background, daemon=True).start()
 
 
 if __name__ == "__main__":

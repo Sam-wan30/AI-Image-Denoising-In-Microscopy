@@ -1,13 +1,12 @@
-"""Thread-safe lazy-loaded denoising service for production.
+"""Thread-safe lazy-loaded denoising service.
 
-This module prefers ONNXRuntime for inference when an `.onnx` model is present
-so the web service can run without a PyTorch install. PyTorch (`.pt`) checkpoints
-are still supported as a fallback when `torch` is available.
+This module supports PyTorch (`.pt`) checkpoints for inference.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import uuid
 from io import BytesIO
@@ -24,17 +23,17 @@ from utils.preprocessing import IMAGE_SIZE, load_grayscale, postprocess_tensor, 
 from utils.salt_pepper import denoise_salt_pepper, estimate_salt_pepper_ratio
 from utils.brightfield import brightfield_object_mask
 
-# Optional backends: prefer ONNXRuntime to avoid a hard PyTorch dependency in lightweight deploys.
-try:
-    import onnxruntime as ort
-except Exception:
-    ort = None
-
 try:
     # Do NOT import torch at module import time; import lazily when a .pt checkpoint is loaded.
     import torch  # type: ignore
 except Exception:
     torch = None
+
+# ONNX runtime support (optional)
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +46,9 @@ class ModelNotReadyError(RuntimeError):
 
 
 class DenoiserService:
-    """Loads the U-Net once and runs inference on CPU (Render-friendly).
+    """Loads the U-Net once and runs inference.
 
-    This service supports two backends:
-    - ONNXRuntime when `MODEL_PATH` points to an `.onnx` file (preferred for Render)
-    - PyTorch when `MODEL_PATH` points to a `.pt` checkpoint (requires `torch` installed)
+    This service supports PyTorch checkpoints (.pt) and optionally ONNX models (.onnx).
     """
 
     def __init__(self) -> None:
@@ -69,13 +66,21 @@ class DenoiserService:
 
     @property
     def status(self) -> dict[str, Any]:
-        return {
-            "ready": self.is_ready,
-            "error": self._load_error,
-            "model_path": str(config.MODEL_PATH),
-            "device": str(self.device),
-            **self.model_info,
-        }
+        try:
+            return {
+                "ready": self.is_ready,
+                "error": self._load_error,
+                "model_path": str(config.MODEL_PATH),
+                "device": str(self.device),
+                **self.model_info,
+            }
+        except Exception:
+            return {
+                "ready": False,
+                "error": "Status check failed",
+                "model_path": str(config.MODEL_PATH),
+                "device": "unknown",
+            }
 
     def warm_up(self) -> None:
         """Load model weights (call from a background thread on startup)."""
@@ -90,14 +95,27 @@ class DenoiserService:
             if self.model is not None:
                 return
             path = Path(config.MODEL_PATH)
+
+            # Startup diagnostics
+            logger.info("=" * 70)
+            logger.info("MODEL LOADING DIAGNOSTICS")
+            logger.info("=" * 70)
+            logger.info("MODEL_URL: %s", config.MODEL_URL if config.MODEL_URL else "Not set")
+            logger.info("MODEL_PATH: %s", path)
+            logger.info("File exists: %s", path.is_file())
+            if path.is_file():
+                logger.info("File size: %.2f MB", path.stat().st_size / (1024 * 1024))
+            logger.info("BASE_DIR: %s", config.BASE_DIR)
+            logger.info("=" * 70)
+
             if not path.is_file():
                 raise FileNotFoundError(
-                    f"Model not found at {path}. Run scripts/export_inference_checkpoint.py or set MODEL_URL."
+                    f"Model not found at {path}. Ensure model file is present."
                 )
 
             logger.info("Loading model from %s", path)
 
-            # ONNX path (preferred for lightweight deploys)
+            # ONNX path
             if path.suffix.lower() == ".onnx":
                 if ort is None:
                     raise RuntimeError("onnxruntime is not installed; cannot load .onnx model.")
@@ -106,7 +124,7 @@ class DenoiserService:
                 self.model = None
                 self.model_info = {"type": "ONNX U-Net", "parameters": None, "device": "cpu", "path": str(path)}
                 self._load_error = None
-                logger.info("Loaded ONNX model: %s", path)
+                logger.info("Loaded ONNX model: %s (Execution Provider: CPUExecutionProvider)", path)
                 return
 
             # PyTorch fallback

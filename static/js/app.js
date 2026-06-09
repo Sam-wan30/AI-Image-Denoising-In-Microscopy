@@ -50,7 +50,18 @@
   async function checkStatus() {
     try {
       const res = await fetch("/api/status");
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON");
+      }
+      const text = await res.text();
+      if (!text.trim()) {
+        throw new Error("Empty response body");
+      }
+      const data = JSON.parse(text);
       if (data.ready) {
         statusDot.classList.remove("offline");
         statusText.textContent = "Model online · " + (data.type || "U-Net");
@@ -61,7 +72,8 @@
       } else {
         statusText.textContent = "Model loading…";
       }
-    } catch {
+    } catch (err) {
+      console.error("Status check failed:", err);
       statusDot.classList.add("offline");
       statusText.textContent = "Server unreachable";
     }
@@ -96,9 +108,20 @@
     setLoading(true);
     try {
       const res = await fetch("/api/denoise", { method: "POST", body: formData });
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON");
+      }
+      const text = await res.text();
+      if (!text.trim()) {
+        throw new Error("Empty response body");
+      }
+      const data = JSON.parse(text);
 
-      if (!res.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.error || "Denoising failed.");
       }
 
