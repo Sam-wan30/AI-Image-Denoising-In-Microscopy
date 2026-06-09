@@ -741,7 +741,7 @@ Contributions are welcome! Please feel free to submit a Pull Request or open an 
 For questions, issues, or collaboration opportunities:
 - Open an Issue on GitHub
 - Contact: [your.email@example.com]
-- Documentation: [Project Wiki](https://github.com/YOUR_USERNAME/AI-Image-Denoising-In-Microscopy/wiki)
+- Documentation: [Project Wiki](https://github.com/Sam-wan30/AI-Image-Denoising-In-Microscopy/wiki)
 
 ---
 
