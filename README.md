@@ -703,13 +703,13 @@ python train.py \
 
 ## 👤 Author
 
-**Samiksha**  
+**Samiksha Vishwanath Wanjari**  
 *Full Stack Developer & AI Engineer*
 
 - 🎯 Specializing in deep learning applications for scientific imaging
 - 💡 Passionate about bridging research and production software
 - 🚀 Experienced in building end-to-end ML systems
-- 📧 [LinkedIn](https://linkedin.com/in/yourprofile) | [GitHub](https://github.com/Sam-wan30) | [Portfolio](https://yourportfolio.com)
+- 📧 [LinkedIn](https://www.linkedin.com/in/samikshawanjari30/) | [GitHub](https://github.com/Sam-wan30) | [Portfolio](https://yourportfolio.com)
 
 ### Acknowledgments
 - Inspired by the [CARE (Content-Aware Image Restoration)](https://arxiv.org/abs/1811.03675) framework
