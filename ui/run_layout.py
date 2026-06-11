@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import os
+from datetime import datetime
 
 import numpy as np
 import streamlit as st
@@ -171,13 +172,21 @@ def render_main_layout(app) -> None:
         img_byte_arr = io.BytesIO()
         denoised_pil.save(img_byte_arr, format="PNG")
         img_byte_arr.seek(0)
-        st.download_button(
-            label="⬇ Download denoised image",
-            data=img_byte_arr,
-            file_name=f"denoised_{st.session_state.get('upload_name', 'output.png')}",
-            mime="image/png",
-            width='stretch',
-        )
+        
+        # Generate timestamped filename
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        filename = f"denoised-image-{timestamp}.png"
+        
+        try:
+            st.download_button(
+                label="⬇ Download denoised image",
+                data=img_byte_arr,
+                file_name=filename,
+                mime="image/png",
+                width='stretch',
+            )
+        except Exception as exc:
+            st.error(f"Download failed: {exc}")
 
     render_section_heading("04", "Architecture", "UNDER THE HOOD")
     render_architecture_section()

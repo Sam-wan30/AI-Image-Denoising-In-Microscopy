@@ -65,6 +65,7 @@ NeuroScope demonstrates the practical application of deep learning to solve real
 - **Responsive Design**: Mobile-friendly interface with real-time status monitoring
 - **Multiple Denoising Modes**: U-Net, auto-routing, salt-and-pepper filter, brightfield mask
 - **Real-time Metrics**: PSNR and SSIM calculation with visual feedback
+- **One-Click Download**: Automatic timestamped download of denoised images with error handling
 
 ### 🔧 Training Pipeline
 - **CARE Dataset Support**: Paired noisy/clean image loading with automatic matching
@@ -79,6 +80,7 @@ NeuroScope demonstrates the practical application of deep learning to solve real
 - **Multiple Output Formats**: Comparison images, individual results, metrics reports
 - **Flexible Model Loading**: Support for PyTorch checkpoints and ONNX runtime
 - **Thread-Safe Service**: Lazy-loaded model inference with concurrent request handling
+- **Smart Download System**: Automatic timestamped filename generation and dual-format support (URL/Base64)
 
 ### 🛠️ Technical Features
 - **ONNX Runtime Support**: Optional deployment-optimized inference
@@ -423,8 +425,8 @@ python application.py
 1. **Upload Image**: Drag and drop or click to select a microscopy image
 2. **Select Mode**: Choose denoising algorithm (Auto, U-Net, Salt-Pepper, Brightfield)
 3. **Process**: Click "Start denoising" to begin processing
-4. **View Results**: Compare side-by-side with quality metrics
-5. **Download**: Save denoised image to local storage
+4. **View Results**: Compare side-by-side with quality metrics (PSNR, SSIM)
+5. **Download**: Click "⬇ Download denoised image" to save the AI-restored image with automatic timestamped filename (format: `denoised-image-YYYYMMDD-HHMMSS.png`)
 
 #### API Endpoints
 
