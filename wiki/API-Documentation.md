@@ -6,7 +6,7 @@
 
 ## Overview
 
-NeuroScope provides a comprehensive REST API for programmatic image denoising. The API is designed to be simple, intuitive, and compatible with standard web service practices. This documentation covers all available endpoints, request/response formats, and best practices for integration.
+FluoClean AI provides a comprehensive REST API for programmatic image denoising. The API is designed to be simple, intuitive, and compatible with standard web service practices. This documentation covers all available endpoints, request/response formats, and best practices for integration.
 
 ### API Base URL
 - **Local Development**: `http://localhost:5000`
@@ -565,7 +565,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-class NeuroScopeClient:
+class FluoClean AIClient:
     def __init__(self, base_url='http://localhost:5000'):
         self.base_url = base_url
     
@@ -607,7 +607,7 @@ class NeuroScopeClient:
         return response.json()
 
 # Usage
-client = NeuroScopeClient()
+client = FluoClean AIClient()
 
 # Check health
 health = client.check_health()
@@ -627,7 +627,7 @@ denoised_image.save('denoised.png')
 #### Browser Integration
 
 ```javascript
-class NeuroScopeAPI {
+class FluoClean AIAPI {
     constructor(baseUrl = 'http://localhost:5000') {
         this.baseUrl = baseUrl;
     }
@@ -673,7 +673,7 @@ class NeuroScopeAPI {
 }
 
 // Usage
-const api = new NeuroScopeAPI();
+const api = new FluoClean AIAPI();
 
 // Denoise image from file input
 document.getElementById('imageInput').addEventListener('change', async (e) => {
@@ -703,7 +703,7 @@ const FormData = require('form-data');
 const fs = require('fs');
 const axios = require('axios');
 
-class NeuroScopeClient {
+class FluoClean AIClient {
     constructor(baseUrl = 'http://localhost:5000') {
         this.baseUrl = baseUrl;
         this.client = axios.create({
@@ -745,7 +745,7 @@ class NeuroScopeClient {
 
 // Usage
 async function main() {
-    const client = new NeuroScopeClient();
+    const client = new FluoClean AIClient();
     
     try {
         // Check health
@@ -852,7 +852,7 @@ curl -O http://localhost:5000/api/download/denoised_test_image.png
 import requests
 import unittest
 
-class TestNeuroScopeAPI(unittest.TestCase):
+class TestFluoClean AIAPI(unittest.TestCase):
     def setUp(self):
         self.base_url = 'http://localhost:5000'
     

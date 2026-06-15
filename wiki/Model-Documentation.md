@@ -6,7 +6,7 @@
 
 ## Overview
 
-NeuroScope implements multiple U-Net architecture variants optimized for microscopy image denoising. The models are designed to preserve fine cellular structures while effectively removing photon shot noise, sensor noise, and other artifacts common in microscopy imaging.
+FluoClean AI implements multiple U-Net architecture variants optimized for microscopy image denoising. The models are designed to preserve fine cellular structures while effectively removing photon shot noise, sensor noise, and other artifacts common in microscopy imaging.
 
 ### Design Philosophy
 - **Structure Preservation**: Emphasis on maintaining fine biological details

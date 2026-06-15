@@ -1,4 +1,4 @@
-# NeuroScope - AI Microscopy Image Denoising
+# FluoClean AI - AI Microscopy Image Denoising
 
 **Advanced Deep Learning Pipeline for Microscopy Image Restoration**
 
@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-NeuroScope is a production-grade AI system designed to address the critical challenge of noise in microscopy imaging. This project implements a complete end-to-end deep learning pipeline inspired by the groundbreaking CARE (Content-Aware Image Restoration) framework, specifically optimized for fluorescence microscopy and related imaging modalities.
+FluoClean AI is a production-grade AI system designed to address the critical challenge of noise in microscopy imaging. This project implements a complete end-to-end deep learning pipeline inspired by the groundbreaking CARE (Content-Aware Image Restoration) framework, specifically optimized for fluorescence microscopy and related imaging modalities.
 
 ### Technology Stack
 - **Deep Learning**: PyTorch 2.2+ with custom U-Net architectures
@@ -164,7 +164,7 @@ If you use this project in your research, please cite:
 
 ```bibtex
 @software{neuroscope2024,
-  title={NeuroScope: AI Microscopy Image Denoising System},
+  title={FluoClean AI: AI Microscopy Image Denoising System},
   author={Samiksha},
   year={2024},
   url={https://github.com/Sam-wan30/AI-Image-Denoising-In-Microscopy}

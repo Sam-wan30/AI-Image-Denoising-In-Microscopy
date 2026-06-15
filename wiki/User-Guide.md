@@ -1,12 +1,12 @@
 # User Guide
 
-**Complete Guide for Using NeuroScope Applications**
+**Complete Guide for Using FluoClean AI Applications**
 
 ---
 
 ## Overview
 
-This comprehensive user guide covers all aspects of using NeuroScope, from basic image denoising to advanced configuration and optimization. Whether you're a researcher, clinician, or developer, this guide will help you make the most of the system's capabilities.
+This comprehensive user guide covers all aspects of using FluoClean AI, from basic image denoising to advanced configuration and optimization. Whether you're a researcher, clinician, or developer, this guide will help you make the most of the system's capabilities.
 
 ### User Personas
 - **Researchers**: Biological researchers using microscopy imaging
@@ -677,7 +677,7 @@ python application.py
 
 <div align="center">
 
-**Effective use of NeuroScope enhances microscopy image quality and research outcomes**
+**Effective use of FluoClean AI enhances microscopy image quality and research outcomes**
 
 [⬆ Back to Wiki Home](Home) | [← Installation Guide](Installation-Guide) | [API Documentation](API-Documentation) →
 

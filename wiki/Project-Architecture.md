@@ -6,7 +6,7 @@
 
 ## System Architecture Overview
 
-NeuroScope implements a modular, production-ready architecture designed for scalability, maintainability, and performance. The system follows a layered architecture pattern with clear separation of concerns across presentation, application, business logic, and data layers.
+FluoClean AI implements a modular, production-ready architecture designed for scalability, maintainability, and performance. The system follows a layered architecture pattern with clear separation of concerns across presentation, application, business logic, and data layers.
 
 ### High-Level Architecture
 

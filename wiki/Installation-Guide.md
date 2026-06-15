@@ -6,7 +6,7 @@
 
 ## Overview
 
-This guide provides comprehensive installation instructions for NeuroScope across different operating systems and use cases. The installation process is designed to be straightforward while accommodating various hardware configurations and deployment scenarios.
+This guide provides comprehensive installation instructions for FluoClean AI across different operating systems and use cases. The installation process is designed to be straightforward while accommodating various hardware configurations and deployment scenarios.
 
 ### Installation Scenarios
 - **Local Development**: Full setup with training capabilities

@@ -50,7 +50,7 @@ def _render_compare_image(column, image) -> None:
 
 
 def render_main_layout(app) -> None:
-    """Render the NeuroScope-themed main page; delegates inference to `app`."""
+    """Render the FluoClean AI-themed main page; delegates inference to `app`."""
     model_online = st.session_state.get("model_loaded", False)
     model_label = "Residual U-Net"
     if info := st.session_state.get("model_info"):
@@ -153,18 +153,25 @@ def render_main_layout(app) -> None:
                 progress.progress(100)
 
                 if result is not None:
-                    metrics = app.calculate_metrics(image_array, result)
+                    # Always calculate metrics, even if using non-U-Net modes
+                    try:
+                        metrics = app.calculate_metrics(image_array, result)
+                    except Exception as exc:
+                        st.warning(f"Metrics calculation encountered an issue: {exc}")
+                        metrics = {"psnr": None, "ssim": None}
+                    
                     st.session_state["denoised_result"] = result
                     st.session_state["result_metrics"] = metrics
                     st.session_state["upload_name"] = upload_name
                     st.rerun()
 
     metrics = st.session_state.get("result_metrics")
-    if denoised_image is not None and metrics:
+    if denoised_image is not None:
         render_section_heading("03", "Quality Metrics", "QUANTITATIVE FIDELITY")
+        # Display metrics even if calculation failed, showing fallback values
         render_metric_cards_row(
-            psnr=metrics.get("psnr"),
-            ssim=metrics.get("ssim"),
+            psnr=metrics.get("psnr") if metrics else None,
+            ssim=metrics.get("ssim") if metrics else None,
         )
 
         st.markdown('<div class="ns-spacer-sm"></div>', unsafe_allow_html=True)

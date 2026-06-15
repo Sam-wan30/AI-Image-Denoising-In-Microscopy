@@ -1,4 +1,4 @@
-"""Reusable UI components for the NeuroScope-themed Streamlit frontend."""
+"""Reusable UI components for the FluoClean AI-themed Streamlit frontend."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def render_navbar(*, model_online: bool, model_label: str = "Residual U-Net") ->
             <div class="ns-brand">
                 <div class="ns-brand-icon">🔬</div>
                 <div class="ns-brand-text">
-                    <span class="ns-brand-name">NeuroScope</span>
+                    <span class="ns-brand-name">FluoClean AI</span>
                     <span class="ns-brand-tag">AI Denoising Lab</span>
                 </div>
             </div>
@@ -257,7 +257,7 @@ def render_footer() -> None:
         <footer class="ns-footer">
             <div class="ns-footer-left">
                 <span>🔬</span>
-                <span>NeuroScope · Research demo · © 2026</span>
+                <span>FluoClean AI · Research demo · © 2026</span>
             </div>
             <div class="ns-footer-links">
                 <a class="ns-footer-link" href="#">Paper</a>

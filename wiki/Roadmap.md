@@ -6,7 +6,7 @@
 
 ## Overview
 
-This roadmap outlines the development trajectory of NeuroScope, detailing completed features, current development priorities, and long-term vision. The roadmap is informed by community feedback, research advances, and practical requirements from microscopy applications.
+This roadmap outlines the development trajectory of FluoClean AI, detailing completed features, current development priorities, and long-term vision. The roadmap is informed by community feedback, research advances, and practical requirements from microscopy applications.
 
 ### Roadmap Philosophy
 - **User-Driven**: Prioritized based on user needs and feedback
@@ -573,7 +573,7 @@ This roadmap outlines the development trajectory of NeuroScope, detailing comple
 
 ### Roadmap Summary
 
-NeuroScope is on a clear trajectory from a solid foundation to a comprehensive microscopy image analysis platform. The roadmap balances immediate user needs with long-term research goals, ensuring practical value while pushing technological boundaries.
+FluoClean AI is on a clear trajectory from a solid foundation to a comprehensive microscopy image analysis platform. The roadmap balances immediate user needs with long-term research goals, ensuring practical value while pushing technological boundaries.
 
 ### Commitment to Open Source
 

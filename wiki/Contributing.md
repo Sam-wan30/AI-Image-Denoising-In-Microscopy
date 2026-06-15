@@ -6,7 +6,7 @@
 
 ## Overview
 
-NeuroScope welcomes contributions from the community! Whether you're fixing a bug, adding a feature, improving documentation, or suggesting new ideas, your contributions are valued. This guide provides everything you need to contribute effectively and responsibly.
+FluoClean AI welcomes contributions from the community! Whether you're fixing a bug, adding a feature, improving documentation, or suggesting new ideas, your contributions are valued. This guide provides everything you need to contribute effectively and responsibly.
 
 ### Contribution Philosophy
 - **Inclusive**: Welcome contributions of all types and skill levels
@@ -731,7 +731,7 @@ For significant contributions:
 
 ### Contribution Rights
 
-By contributing to NeuroScope, you agree that:
+By contributing to FluoClean AI, you agree that:
 - Your contributions will be licensed under the project's MIT License
 - Your contributions may be included in future releases
 - Your contributions will be properly attributed
@@ -818,7 +818,7 @@ Students and researchers are welcome to contribute as part of:
 
 ### Contributor Recognition
 
-The NeuroScope project gratefully acknowledges all contributors who:
+The FluoClean AI project gratefully acknowledges all contributors who:
 - Report bugs and issues
 - Submit pull requests
 - Improve documentation

@@ -6,7 +6,7 @@
 
 ## Overview
 
-NeuroScope uses paired noisy/clean microscopy images for training, following the CARE (Content-Aware Image Restoration) methodology. The dataset structure enables supervised learning where the network learns to map noisy microscopy images to their clean, high-SNR counterparts.
+FluoClean AI uses paired noisy/clean microscopy images for training, following the CARE (Content-Aware Image Restoration) methodology. The dataset structure enables supervised learning where the network learns to map noisy microscopy images to their clean, high-SNR counterparts.
 
 ### Dataset Philosophy
 - **Paired Learning**: Requires exact correspondence between noisy and clean images

@@ -6,7 +6,7 @@
 
 ## Overview
 
-This comprehensive development guide provides everything needed to contribute to NeuroScope, including project structure, coding standards, development workflow, and best practices. Whether you're fixing a bug, adding a feature, or contributing documentation, this guide will help you work effectively with the codebase.
+This comprehensive development guide provides everything needed to contribute to FluoClean AI, including project structure, coding standards, development workflow, and best practices. Whether you're fixing a bug, adding a feature, or contributing documentation, this guide will help you work effectively with the codebase.
 
 ### Development Philosophy
 - **Modularity**: Clean separation of concerns

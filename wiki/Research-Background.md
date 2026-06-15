@@ -6,13 +6,13 @@
 
 ## Overview
 
-This section provides the scientific and technical background for microscopy image denoising, explaining the challenges that make AI-based approaches necessary and the research foundation that informed NeuroScope's development. Understanding this context is essential for appreciating both the problem complexity and the solution's effectiveness.
+This section provides the scientific and technical background for microscopy image denoising, explaining the challenges that make AI-based approaches necessary and the research foundation that informed FluoClean AI's development. Understanding this context is essential for appreciating both the problem complexity and the solution's effectiveness.
 
 ### Research Objectives
 - Understand the fundamental challenges in microscopy imaging
 - Explore traditional denoising methods and their limitations
 - Examine AI approaches and their advantages
-- Provide context for NeuroScope's design decisions
+- Provide context for FluoClean AI's design decisions
 - Identify opportunities for future research
 
 ---
@@ -396,7 +396,7 @@ class DenoisingLoss(nn.Module):
 - **Loss Function**: Combined L1 + SSIM
 - **Data Augmentation**: Improve generalization
 
-**Adaptation in NeuroScope:**
+**Adaptation in FluoClean AI:**
 - **Model Variants**: Multiple U-Nets for different needs
 - **Normalization**: GroupNorm for small-batch stability
 - **Optimization**: Learning rate scheduling and early stopping
@@ -474,11 +474,11 @@ class DenoisingLoss(nn.Module):
 
 ---
 
-## NeuroScope Research Foundation
+## FluoClean AI Research Foundation
 
 ### CARE Methodology Adaptation
 
-#### From CARE to NeuroScope
+#### From CARE to FluoClean AI
 
 **CARE Principles Preserved:**
 - **Paired Training**: Noisy-clean image pairs
@@ -486,7 +486,7 @@ class DenoisingLoss(nn.Module):
 - **Combined Loss**: L1 + SSIM balance
 - **Quality Metrics**: PSNR and SSIM evaluation
 
-**NeuroScope Enhancements:**
+**FluoClean AI Enhancements:**
 - **Multiple Architectures**: Standard, Enhanced, Residual U-Net
 - **Production Ready**: Web applications and API
 - **Multiple Modes**: Auto, U-Net, salt-pepper, brightfield
@@ -585,7 +585,7 @@ class DenoisingLoss(nn.Module):
 
 ---
 
-## NeuroScope's Research Contributions
+## FluoClean AI's Research Contributions
 
 ### Practical Implementation
 
@@ -655,13 +655,13 @@ class DenoisingLoss(nn.Module):
 
 Microscopy image denoising presents unique challenges due to the biological context and technical constraints of microscopy imaging. Traditional methods have fundamental limitations in preserving fine biological structures while effectively removing noise. AI approaches, particularly deep learning with U-Net architectures, have revolutionized this field by learning optimal denoising strategies from paired data.
 
-### NeuroScope's Position
+### FluoClean AI's Position
 
-NeuroScope represents a practical implementation of state-of-the-art AI denoising approaches, specifically adapted for microscopy imaging. The system combines research advances with production-ready implementation, providing a comprehensive solution for researchers and practitioners.
+FluoClean AI represents a practical implementation of state-of-the-art AI denoising approaches, specifically adapted for microscopy imaging. The system combines research advances with production-ready implementation, providing a comprehensive solution for researchers and practitioners.
 
 ### Scientific Impact
 
-By making advanced AI denoising accessible through multiple interfaces and comprehensive documentation, NeuroScope aims to:
+By making advanced AI denoising accessible through multiple interfaces and comprehensive documentation, FluoClean AI aims to:
 - **Advance Research**: Enable better microscopy-based research
 - **Improve Diagnostics**: Enhance medical imaging analysis
 - **Accelerate Discovery**: Support new applications in life sciences
@@ -671,7 +671,7 @@ By making advanced AI denoising accessible through multiple interfaces and compr
 
 <div align="center">
 
-**Understanding the research background provides context for NeuroScope's design and capabilities**
+**Understanding the research background provides context for FluoClean AI's design and capabilities**
 
 [⬆ Back to Wiki Home](Home) | [← Performance Evaluation](Performance-Evaluation) | [Development Guide](Development-Guide) →
 

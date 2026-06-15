@@ -6,7 +6,7 @@
 
 ## Overview
 
-This section provides comprehensive performance evaluation of the NeuroScope denoising system, including quantitative metrics, benchmark results, and qualitative assessments. The evaluation methodology follows industry standards for image quality assessment and deep learning model evaluation.
+This section provides comprehensive performance evaluation of the FluoClean AI denoising system, including quantitative metrics, benchmark results, and qualitative assessments. The evaluation methodology follows industry standards for image quality assessment and deep learning model evaluation.
 
 ### Evaluation Philosophy
 - **Objective Metrics**: PSNR and SSIM for quantitative assessment
@@ -368,7 +368,7 @@ for train_idx, val_idx in kfold.split(dataset):
 ### Comparison with Traditional Methods
 
 #### vs. Gaussian Blur
-| Metric | Gaussian Blur | NeuroScope | Improvement |
+| Metric | Gaussian Blur | FluoClean AI | Improvement |
 |--------|--------------|------------|-------------|
 | **PSNR** | 28.3 dB | 35.1 dB | +6.8 dB |
 | **SSIM** | 0.78 | 0.92 | +0.14 |
@@ -376,7 +376,7 @@ for train_idx, val_idx in kfold.split(dataset):
 | **Edge Sharpness** | Blurred | Sharp | Significant |
 
 #### vs. Median Filter
-| Metric | Median Filter | NeuroScope | Improvement |
+| Metric | Median Filter | FluoClean AI | Improvement |
 |--------|--------------|------------|-------------|
 | **PSNR** | 29.5 dB | 35.1 dB | +5.6 dB |
 | **SSIM** | 0.81 | 0.92 | +0.11 |
@@ -384,7 +384,7 @@ for train_idx, val_idx in kfold.split(dataset):
 | **General Denoising** | Fair | Excellent | Significant |
 
 #### vs. Non-Local Means
-| Metric | Non-Local Means | NeuroScope | Improvement |
+| Metric | Non-Local Means | FluoClean AI | Improvement |
 |--------|-----------------|------------|-------------|
 | **PSNR** | 31.2 dB | 35.1 dB | +3.9 dB |
 | **SSIM** | 0.85 | 0.92 | +0.07 |
@@ -543,7 +543,7 @@ def run_regression_tests():
 
 ### Performance Summary
 
-NeuroScope demonstrates excellent performance in microscopy image denoising:
+FluoClean AI demonstrates excellent performance in microscopy image denoising:
 
 - **Quantitative Metrics**: Achieves 30-36 dB PSNR improvement
 - **Structural Preservation**: SSIM >0.90 in most cases

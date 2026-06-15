@@ -6,7 +6,7 @@
 
 ## Overview
 
-This FAQ addresses common questions from users, developers, and researchers about NeuroScope. It covers installation, usage, technical issues, and best practices to help you resolve problems quickly and effectively.
+This FAQ addresses common questions from users, developers, and researchers about FluoClean AI. It covers installation, usage, technical issues, and best practices to help you resolve problems quickly and effectively.
 
 ### FAQ Categories
 - **User Questions**: Usage, installation, and general usage
@@ -20,7 +20,7 @@ This FAQ addresses common questions from users, developers, and researchers abou
 
 ### Installation and Setup
 
-#### Q: What are the system requirements for NeuroScope?
+#### Q: What are the system requirements for FluoClean AI?
 **A:** 
 - **Operating System**: Linux (Ubuntu 18.04+), macOS (10.15+), Windows 10+
 - **Python**: 3.11 or higher
@@ -28,10 +28,10 @@ This FAQ addresses common questions from users, developers, and researchers abou
 - **Storage**: 5GB minimum, 10GB+ recommended
 - **GPU**: Optional but recommended for training (NVIDIA GPU with 8GB+ VRAM)
 
-#### Q: Can I run NeuroScope without a GPU?
-**A:** Yes, NeuroScope can run on CPU for inference, though it will be slower. Training on CPU is possible but significantly slower. For the best experience, an NVIDIA GPU with CUDA support is recommended.
+#### Q: Can I run FluoClean AI without a GPU?
+**A:** Yes, FluoClean AI can run on CPU for inference, though it will be slower. Training on CPU is possible but significantly slower. For the best experience, an NVIDIA GPU with CUDA support is recommended.
 
-#### Q: How do I install NeuroScope on Windows?
+#### Q: How do I install FluoClean AI on Windows?
 **A:**
 1. Install Python 3.11 or higher from python.org
 2. Clone the repository: `git clone https://github.com/Sam-wan30/AI-Image-Denoising-In-Microscopy.git`
@@ -49,8 +49,8 @@ This FAQ addresses common questions from users, developers, and researchers abou
 
 ### Usage and Functionality
 
-#### Q: What image formats does NeuroScope support?
-**A:** NeuroScope supports the following formats:
+#### Q: What image formats does FluoClean AI support?
+**A:** FluoClean AI supports the following formats:
 - PNG (recommended for lossless quality)
 - JPEG/JPG (smaller file size, some quality loss)
 - TIFF/TIFF (high-quality microscopy format)
@@ -222,7 +222,7 @@ pytest --cov=src --cov=services --cov=utils
 4. Add configuration options
 5. Test and document changes
 
-#### Q: How do I integrate NeuroScope into my existing pipeline?
+#### Q: How do I integrate FluoClean AI into my existing pipeline?
 **A:** You can integrate via:
 - **REST API**: Use the Flask API endpoints
 - **Python SDK**: Import the DenoiserService class
@@ -278,8 +278,8 @@ limiter = Limiter(app, key_func=get_remote_address)
 
 This combination was chosen because single metrics (L1, L2, or SSIM alone) don't provide optimal results for preserving fine biological structures while removing noise.
 
-#### Q: How does NeuroScope compare to CARE?
-**A:** NeuroScope is inspired by CARE but includes several enhancements:
+#### Q: How does FluoClean AI compare to CARE?
+**A:** FluoClean AI is inspired by CARE but includes several enhancements:
 - Multiple U-NET architectures (Standard, Enhanced, Residual)
 - Production-ready web applications and API
 - Multiple denoising modes for different use cases
@@ -295,7 +295,7 @@ This combination was chosen because single metrics (L1, L2, or SSIM alone) don't
 - **Cross-validation**: Optional for small datasets
 
 #### Q: How do you handle different microscopy modalities?
-**A:** Currently, NeuroScope is optimized for fluorescence microscopy but includes:
+**A:** Currently, FluoClean AI is optimized for fluorescence microscopy but includes:
 - **Brightfield mode**: Specialized processing for brightfield
 - **Auto mode**: Attempts automatic mode selection
 - **Configurable preprocessing**: Can be adapted for modalities
@@ -546,13 +546,13 @@ How can I resolve this?"
 
 ### Research and Development
 
-#### Q: Can I use NeuroScope for 3D microscopy data?
-**A:** Currently, NeuroScope processes 2D images. 3D support is planned for future releases. For now, you can process 3D data by processing each Z-slice independently, but temporal consistency won't be preserved.
+#### Q: Can I use FluoClean AI for 3D microscopy data?
+**A:** Currently, FluoClean AI processes 2D images. 3D support is planned for future releases. For now, you can process 3D data by processing each Z-slice independently, but temporal consistency won't be preserved.
 
-#### Q: Can NeuroScope handle time-lapse imaging?
+#### Q: Can FluoClean AI handle time-lapse imaging?
 **A:** For individual time-lapse frames, yes. For time-aware processing that maintains temporal consistency, this feature is planned for future development.
 
-#### Q: How does NeuroScope handle different noise characteristics?
+#### Q: How does FluoClean AI handle different noise characteristics?
 **A:** The Auto mode attempts to detect noise characteristics and select the appropriate denoising method. For best results with known noise types, use the specific mode (e.g., salt-pepper for impulse noise).
 
 #### Q: Can I fine-tune a pre-trained model on my data?
@@ -570,17 +570,17 @@ optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 ## Legal and Licensing
 
-#### Q: Can I use NeuroScope for commercial purposes?
-**A:** Yes, NeuroScope is released under the MIT License, which permits commercial use, modification, and distribution. See the LICENSE file for details.
+#### Q: Can I use FluoClean AI for commercial purposes?
+**A:** Yes, FluoClean AI is released under the MIT License, which permits commercial use, modification, and distribution. See the LICENSE file for details.
 
-#### Q: Can I use the models trained with NeuroScope in commercial products?
+#### Q: Can I use the models trained with FluoClean AI in commercial products?
 **A:** Yes, the MIT License allows using the code and trained models in commercial products. However, if you use the training data (which may have its own license), ensure compliance with the dataset's license terms.
 
-#### Q: Do I need to cite NeuroScope if I use it in research?
-**A:** Citing is appreciated but not required by the license. If you publish research using NeuroScope, please cite:
+#### Q: Do I need to cite FluoClean AI if I use it in research?
+**A:** Citing is appreciated but not required by the license. If you publish research using FluoClean AI, please cite:
 ```bibtex
 @software{neuroscope2024,
-  title={NeuroScope: AI Microscopy Image Denoising System},
+  title={FluoClean AI: AI Microscopy Image Denoising System},
   author={Samiksha},
   year={2024},
   url={https://github.com/Sam-wan30/AI-Image-Denoising-In-Microscopy}
@@ -594,7 +594,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.0001)
 #### Q: When will new features be released?
 **A:** Follow the [Roadmap](Roadmap) for planned features and timelines. Major releases are typically quarterly, with minor updates as needed.
 
-#### Q: How can I stay updated on NeuroScope developments?
+#### Q: How can I stay updated on FluoClean AI developments?
 **A:** 
 - Star the repository on GitHub
 - Watch releases on GitHub
