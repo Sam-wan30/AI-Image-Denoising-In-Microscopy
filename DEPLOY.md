@@ -14,7 +14,8 @@ the ONNX checkpoint so the server does not need PyTorch.
 
 1. In Render, create a new Blueprint and select this repository.
 2. Apply the Blueprint. Render reads `render.yaml`, installs the production
-   dependencies, downloads and quantizes the model, and starts Gunicorn.
+   dependencies, downloads and quantizes the model for a memory-efficient
+   128x128 inference canvas, and starts Gunicorn.
 3. Open `/health` on the deployed service. The process reports `status: ok` even
    before the model is loaded; `model.ready` becomes `true` after the first AI
    denoising request.

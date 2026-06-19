@@ -52,6 +52,7 @@ class DenoiserService:
 
     def __init__(self) -> None:
         self.device = config.DEVICE
+        self.image_size = IMAGE_SIZE
         self.torch = None
         self.onnx_session = None
         self.model: Any | None = None
@@ -118,10 +119,31 @@ class DenoiserService:
             if path.suffix.lower() == ".onnx":
                 if ort is None:
                     raise RuntimeError("onnxruntime is not installed; cannot load .onnx model.")
-                session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+                options = ort.SessionOptions()
+                options.enable_cpu_mem_arena = False
+                options.enable_mem_pattern = False
+                options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+                options.intra_op_num_threads = 1
+                options.inter_op_num_threads = 1
+                options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+                options.add_session_config_entry("session.disable_prepacking", "1")
+                session = ort.InferenceSession(
+                    str(path),
+                    sess_options=options,
+                    providers=["CPUExecutionProvider"],
+                )
+                input_shape = session.get_inputs()[0].shape
+                if isinstance(input_shape[2], int) and isinstance(input_shape[3], int):
+                    self.image_size = (input_shape[3], input_shape[2])
                 self.onnx_session = session
                 self.model = None
-                self.model_info = {"type": "ONNX U-Net", "parameters": None, "device": "cpu", "path": str(path)}
+                self.model_info = {
+                    "type": "ONNX U-Net",
+                    "parameters": None,
+                    "device": "cpu",
+                    "path": str(path),
+                    "image_size": list(self.image_size),
+                }
                 self._load_error = None
                 logger.info("Loaded ONNX model: %s (Execution Provider: CPUExecutionProvider)", path)
                 return
@@ -183,7 +205,7 @@ class DenoiserService:
     def _preprocess_numpy(self, image: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
         gray = load_grayscale(image)
         original_shape = gray.shape[:2]
-        arr = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=False)
+        arr = preprocess_tensor(gray, self.image_size, as_tensor=False)
         # ONNXRuntime expects shape (N, C, H, W)
         inp = np.expand_dims(np.expand_dims(arr.astype(np.float32), axis=0), axis=0)
         return inp, original_shape
@@ -215,7 +237,7 @@ class DenoiserService:
                 inp, original_shape = self._preprocess_numpy(image)
                 input_name = self.onnx_session.get_inputs()[0].name
                 out = self.onnx_session.run(None, {input_name: inp})[0]
-                return postprocess_tensor(out, original_shape, IMAGE_SIZE)
+                return postprocess_tensor(out, original_shape, self.image_size)
             raise ModelNotReadyError("Model is not loaded.")
 
         # PyTorch inference path (model is a torch.nn.Module)
