@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import base64
 import logging
-import threading
 from io import BytesIO
 from pathlib import Path
 
@@ -62,7 +61,7 @@ def create_app() -> Flask:
             return jsonify(
                 {
                     "status": "ok",
-                    "service": "neuroscope-denoising",
+                    "service": "fluoclean-ai",
                     "model": svc.status,
                 }
             ), 200
@@ -70,7 +69,7 @@ def create_app() -> Flask:
             return jsonify(
                 {
                     "status": "ok",
-                    "service": "neuroscope-denoising",
+                    "service": "fluoclean-ai",
                     "model": {"ready": False, "error": str(exc)},
                 }
             ), 200

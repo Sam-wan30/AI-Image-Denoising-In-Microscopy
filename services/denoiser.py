@@ -6,7 +6,6 @@ This module supports PyTorch (`.pt`) checkpoints for inference.
 from __future__ import annotations
 
 import logging
-import os
 import threading
 import uuid
 from io import BytesIO
@@ -62,7 +61,7 @@ class DenoiserService:
 
     @property
     def is_ready(self) -> bool:
-        return self.model is not None
+        return self.model is not None or self.onnx_session is not None
 
     @property
     def status(self) -> dict[str, Any]:
@@ -246,7 +245,7 @@ class DenoiserService:
 
         # Use numpy-based metrics to avoid requiring torch during runtime
         try:
-            orig_norm = image_array.astype(np.float32) / 255.0
+            orig_norm = load_grayscale(image_array).astype(np.float32) / 255.0
             den_norm = denoised.astype(np.float32) / 255.0
             psnr = float(calculate_psnr(den_norm, orig_norm, max_val=1.0))
             ssim = float(calculate_ssim(den_norm, orig_norm, max_val=1.0))
