@@ -5,9 +5,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 model_path="${MODEL_PATH:-models/deploy/model.onnx}"
-if [[ -f "$model_path" ]]; then
-  echo "Model already present at $model_path"
-elif [[ -n "${MODEL_URL:-}" ]]; then
+if [[ -n "${MODEL_URL:-}" ]]; then
   echo "Downloading model to $model_path"
   MODEL_DESTINATION="$model_path" python - <<'PY'
 import os
@@ -32,7 +30,16 @@ finally:
 
 print(f"Downloaded {destination.stat().st_size / 1024 / 1024:.1f} MB")
 PY
+elif [[ -f "$model_path" ]]; then
+  echo "Model already present at $model_path"
 else
   echo "ERROR: $model_path is missing and MODEL_URL is not set." >&2
   exit 1
+fi
+
+if [[ "${QUANTIZE_ONNX:-1}" == "1" ]]; then
+  quantized_path="${model_path%.onnx}.quant.onnx"
+  echo "Quantizing model for the 512 MB runtime"
+  python scripts/quantize_onnx.py --input "$model_path" --output "$quantized_path"
+  mv "$quantized_path" "$model_path"
 fi
