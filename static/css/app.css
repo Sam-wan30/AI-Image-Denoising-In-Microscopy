@@ -201,8 +201,16 @@ body {
 
 .ns-footer {
   margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--ns-border-soft);
-  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
   color: var(--ns-text-dim); font-size: 0.82rem;
+}
+.ns-footer-brand { display: inline-flex; align-items: center; gap: 0.65rem; }
+.ns-footer-logo {
+  width: 36px; height: 36px; display: block; object-fit: contain;
+  padding: 3px; border-radius: 10px;
+  border: 1px solid rgba(125,211,252,.14);
+  background: linear-gradient(135deg, rgba(0,229,255,.08), rgba(168,85,247,.07));
+  filter: drop-shadow(0 0 7px rgba(0,229,255,.18));
 }
 
 .hidden { display: none !important; }

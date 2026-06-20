@@ -132,7 +132,16 @@
     </form>
 
     <footer class="ns-footer">
-      <span>FluoClean AI · Research demo</span>
+      <div class="ns-footer-brand">
+        <img
+          class="ns-footer-logo"
+          src="{{ url_for('static', filename='images/fluoclean-logo.png') }}"
+          alt="FluoClean AI logo"
+          width="36"
+          height="36"
+        />
+        <span>FluoClean AI · Research demo</span>
+      </div>
       <span>Powered by PyTorch U-Net</span>
     </footer>
   </div>
