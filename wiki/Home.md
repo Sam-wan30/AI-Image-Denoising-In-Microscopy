@@ -6,7 +6,7 @@
 
 ## Project Overview
 
-FluoClean AI is a production-grade AI system designed to address the critical challenge of noise in microscopy imaging. This project implements a complete end-to-end deep learning pipeline inspired by the groundbreaking CARE (Content-Aware Image Restoration) framework, specifically optimized for fluorescence microscopy and related imaging modalities.
+FluoClean AI is a research prototype for microscopy image denoising with a deployable web demonstration. It is inspired by CARE (Content-Aware Image Restoration) and is not validated for diagnostic or quantitative scientific use.
 
 ### Technology Stack
 - **Deep Learning**: PyTorch 2.2+ with custom U-Net architectures
@@ -36,7 +36,7 @@ Traditional denoising methods often fail to preserve fine structural details, ma
 This project was developed to bridge the gap between academic research and practical application in microscopy imaging:
 
 - **Research Foundation**: Based on peer-reviewed CARE methodology with custom improvements
-- **Practical Application**: Production-ready system for real-world microscopy workflows
+- **Practical Application**: Deployable research demonstration for microscopy workflows
 - **Open Source**: Accessible to researchers and developers worldwide
 - **Performance**: Optimized for both accuracy and computational efficiency
 - **Usability**: Intuitive interfaces for both technical and non-technical users
@@ -51,14 +51,14 @@ This project was developed to bridge the gap between academic research and pract
 - **Flexible Training**: Support for CARE-style paired datasets with optional augmentation
 - **Model Optimization**: GroupNorm for small-batch stability, configurable depth and channels
 
-### 🌐 Production-Ready Applications
+### 🌐 Application Interfaces
 - **Flask REST API**: Robust web service for image processing
 - **Streamlit UI**: Interactive interface for rapid prototyping
 - **CLI Tools**: Command-line utilities for batch processing
 - **Responsive Design**: Mobile-friendly web interface
 
 ### 📊 Comprehensive Evaluation
-- **Quality Metrics**: PSNR and SSIM calculation for objective assessment
+- **Evaluation Metrics**: PSNR and SSIM against aligned clean targets; the web UI shows input similarity only
 - **Visualization**: Side-by-side comparisons with quantitative feedback
 - **Training Monitoring**: TensorBoard integration for real-time progress tracking
 - **Validation Tracking**: Automatic best-model saving based on validation metrics

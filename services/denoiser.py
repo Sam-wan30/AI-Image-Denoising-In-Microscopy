@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Union
 
 import numpy as np
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 import config
 from services.model_utils import detect_model_type
@@ -42,6 +42,10 @@ _service_lock = threading.Lock()
 
 class ModelNotReadyError(RuntimeError):
     """Raised when the model cannot be loaded or is still loading."""
+
+
+class InvalidImageError(ValueError):
+    """Raised when uploaded bytes are not a safe, supported image."""
 
 
 class DenoiserService:
@@ -167,9 +171,11 @@ class DenoiserService:
             if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
                 model_state_dict = checkpoint["model_state_dict"]
                 model_type = checkpoint.get("model_type") or detect_model_type(list(model_state_dict.keys()))
+                model_config = checkpoint.get("model_config") or {}
             else:
                 model_state_dict = checkpoint
                 model_type = detect_model_type(list(model_state_dict.keys()))
+                model_config = {}
 
             state_dict_keys = list(model_state_dict.keys())
             if model_type == "residual":
@@ -182,7 +188,14 @@ class DenoiserService:
             in_channels = model_state_dict[first_conv_key].shape[1]
             out_channels = model_state_dict[last_conv_key].shape[0]
 
-            model = create_unet_model(model_type=model_type, in_channels=in_channels, out_channels=out_channels)
+            model = create_unet_model(
+                model_type=model_type,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                base_channels=int(model_config.get("base_channels", 64)),
+                depth=int(model_config.get("depth", 4)),
+                bilinear=bool(model_config.get("bilinear", True)),
+            )
             missing, unexpected = model.load_state_dict(model_state_dict, strict=False)
             if missing or unexpected:
                 raise RuntimeError(f"Incompatible checkpoint: missing={len(missing)}, unexpected={len(unexpected)}")
@@ -191,7 +204,18 @@ class DenoiserService:
             model.eval()
 
             self.model = model
-            self.model_info = {"type": model_type, "parameters": sum(p.numel() for p in model.parameters()), "device": config.DEVICE}
+            configured_size = int(model_config.get("image_size", IMAGE_SIZE[0]))
+            self.image_size = (configured_size, configured_size)
+            self.model_info = {
+                "type": model_type,
+                "parameters": sum(p.numel() for p in model.parameters()),
+                "device": config.DEVICE,
+                "epoch": checkpoint.get("epoch") if isinstance(checkpoint, dict) else None,
+                "seed": checkpoint.get("seed") if isinstance(checkpoint, dict) else None,
+                "val_psnr": checkpoint.get("val_psnr") if isinstance(checkpoint, dict) else None,
+                "val_ssim": checkpoint.get("val_ssim") if isinstance(checkpoint, dict) else None,
+                "test_metrics": checkpoint.get("test_metrics") if isinstance(checkpoint, dict) else None,
+            }
             self._load_error = None
             logger.info("Model loaded (%s U-Net)", model_type)
 
@@ -199,7 +223,7 @@ class DenoiserService:
         gray = load_grayscale(image)
         original_shape = gray.shape[:2]
         # Return a torch.Tensor when PyTorch backend is used; otherwise a numpy array for ONNX.
-        tensor = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=True) if torch is not None else preprocess_tensor(gray, IMAGE_SIZE, as_tensor=False)
+        tensor = preprocess_tensor(gray, self.image_size, as_tensor=True) if torch is not None else preprocess_tensor(gray, self.image_size, as_tensor=False)
         return tensor, original_shape
 
     def _preprocess_numpy(self, image: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
@@ -260,7 +284,7 @@ class DenoiserService:
         mode: str = "auto",
     ) -> dict[str, Any]:
         """Run denoising and return metrics + saved output paths."""
-        pil = Image.open(BytesIO(file_bytes)).convert("RGB")
+        pil = self.validate_upload(file_bytes)
         image_array = np.asarray(pil)
 
         denoised = self.denoise(pil, mode=mode)
@@ -284,10 +308,35 @@ class DenoiserService:
             "job_id": job_id,
             "psnr": round(psnr, 2),
             "ssim": round(ssim, 4),
+            "metric_reference": "noisy_input",
             "output_filename": out_name,
             "width": int(image_array.shape[1]) if image_array.ndim >= 2 else 0,
             "height": int(image_array.shape[0]) if image_array.ndim >= 2 else 0,
         }
+
+    @staticmethod
+    def validate_upload(file_bytes: bytes) -> Image.Image:
+        """Decode an image and reject corrupt or unreasonably large inputs."""
+        if not file_bytes:
+            raise InvalidImageError("Uploaded image is empty.")
+        try:
+            with Image.open(BytesIO(file_bytes)) as probe:
+                probe.verify()
+            image = Image.open(BytesIO(file_bytes))
+            width, height = image.size
+            if width <= 0 or height <= 0:
+                raise InvalidImageError("Image dimensions must be positive.")
+            if width * height > config.MAX_IMAGE_PIXELS:
+                raise InvalidImageError(
+                    f"Image is too large ({width}x{height}); maximum is "
+                    f"{config.MAX_IMAGE_PIXELS:,} pixels."
+                )
+            image.load()
+            return image.convert("RGB")
+        except (Image.DecompressionBombError, UnidentifiedImageError, OSError) as exc:
+            raise InvalidImageError(
+                "Uploaded file is not a valid supported image."
+            ) from exc
 
 
 def get_denoiser_service() -> DenoiserService:

@@ -26,6 +26,10 @@ try:
     MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))
 except (ValueError, TypeError):
     MAX_UPLOAD_MB = 50
+try:
+    MAX_IMAGE_PIXELS = int(os.environ.get("MAX_IMAGE_PIXELS", "16000000"))
+except (ValueError, TypeError):
+    MAX_IMAGE_PIXELS = 16_000_000
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 DEVICE = os.environ.get("DEVICE", "cpu")
 

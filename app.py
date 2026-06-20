@@ -239,12 +239,18 @@ class StreamlitDenoisingApp:
             model = st.session_state.model
 
             if isinstance(model, ort.InferenceSession):
-                input_array = preprocess_tensor(image, IMAGE_SIZE, as_tensor=False)
+                input_shape = model.get_inputs()[0].shape
+                model_size = (
+                    (input_shape[3], input_shape[2])
+                    if isinstance(input_shape[2], int) and isinstance(input_shape[3], int)
+                    else IMAGE_SIZE
+                )
+                input_array = preprocess_tensor(image, model_size, as_tensor=False)
                 input_array = input_array[np.newaxis, np.newaxis, :, :].astype(np.float32)
                 original_shape = load_grayscale(image).shape[:2]
                 input_name = model.get_inputs()[0].name
                 output = model.run(None, {input_name: input_array})[0]
-                return postprocess_tensor(output, original_shape, IMAGE_SIZE)
+                return postprocess_tensor(output, original_shape, model_size)
 
             input_tensor, original_shape = self.preprocess_image(image)
             import torch
@@ -258,7 +264,7 @@ class StreamlitDenoisingApp:
             return None
 
     def calculate_metrics(self, original: np.ndarray, denoised: np.ndarray) -> dict[str, float]:
-        """Calculate PSNR and SSIM metrics."""
+        """Calculate output-to-input similarity (not ground-truth quality)."""
         try:
             # Debug info
             st.info(f"Original shape: {original.shape}, dtype: {original.dtype}, range: [{original.min()}, {original.max()}]")

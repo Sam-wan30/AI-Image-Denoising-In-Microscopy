@@ -86,6 +86,10 @@ python inference.py \
 
 #### Q: What do the quality metrics mean?
 **A:**
+- In the web UI, PSNR and SSIM compare the output with the noisy input. They
+  indicate how much the output changed, not whether denoising is correct.
+- With an aligned clean reference, higher PSNR and SSIM generally indicate a
+  closer reconstruction, but neither proves biological fidelity.
 - **PSNR (Peak Signal-to-Noise Ratio)**: Higher is better
   - >40 dB: Excellent quality
   - 30-40 dB: Good quality

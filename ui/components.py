@@ -182,7 +182,7 @@ def render_metric_cards_row(
             <div class="ns-glass ns-metric-card">
                 <div class="ns-metric-icon">〰</div>
                 <div class="ns-metric-title">PSNR</div>
-                <div class="ns-metric-desc">Peak Signal-to-Noise Ratio</div>
+                <div class="ns-metric-desc">Output vs noisy input</div>
                 <div class="ns-metric-value">{psnr_val}</div>
                 <div class="ns-metric-bar"><div class="ns-metric-bar-fill" style="width:{psnr_pct:.0f}%"></div></div>
                 <div class="ns-metric-unit">dB</div>
@@ -190,7 +190,7 @@ def render_metric_cards_row(
             <div class="ns-glass ns-metric-card">
                 <div class="ns-metric-icon">⚡</div>
                 <div class="ns-metric-title">SSIM</div>
-                <div class="ns-metric-desc">Structural Similarity Index</div>
+                <div class="ns-metric-desc">Output vs noisy input</div>
                 <div class="ns-metric-value">{ssim_val}</div>
                 <div class="ns-metric-bar"><div class="ns-metric-bar-fill" style="width:{ssim_pct:.0f}%"></div></div>
                 <div class="ns-metric-unit">0 – 1 scale</div>

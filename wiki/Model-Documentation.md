@@ -1,5 +1,9 @@
 # Model Documentation
 
+> **Validation status:** The deployed checkpoint has incomplete provenance and
+> is a research demo. Architecture descriptions below do not establish held-out
+> performance. See README's Model Validation & Reliability section.
+
 **Architecture, Training Strategy, and Performance Characteristics**
 
 ---
@@ -359,12 +363,12 @@ def calculate_mse(pred, target):
 | **GPU (RTX 3080)** | ~18ms | ~22ms | ~28ms |
 | **GPU (V100)** | ~15ms | ~18ms | ~22ms |
 
-#### Quality Comparison (Typical Results)
-| Architecture | PSNR (dB) | SSIM | Training Time | Inference Time |
-|--------------|-----------|------|---------------|----------------|
-| **Standard U-Net** | 32.5 | 0.87 | Fast | Fast |
-| **Enhanced U-Net** | 34.2 | 0.90 | Medium | Medium |
-| **Residual U-Net** | 35.1 | 0.92 | Slow | Slow |
+#### Quality Comparison
+
+No leakage-safe architecture comparison has been completed. Historical
+"typical" PSNR/SSIM values were removed because no matching split manifests or
+reports exist. Run grouped folds with `train.py --cv_folds` before comparing
+architectures.
 
 ---
 

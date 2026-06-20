@@ -167,7 +167,7 @@ def render_main_layout(app) -> None:
 
     metrics = st.session_state.get("result_metrics")
     if denoised_image is not None:
-        render_section_heading("03", "Quality Metrics", "QUANTITATIVE FIDELITY")
+        render_section_heading("03", "Input Similarity", "NOT GROUND-TRUTH QUALITY")
         # Display metrics even if calculation failed, showing fallback values
         render_metric_cards_row(
             psnr=metrics.get("psnr") if metrics else None,

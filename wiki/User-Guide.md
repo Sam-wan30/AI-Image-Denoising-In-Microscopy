@@ -137,7 +137,11 @@ graph TB
 
 #### Understanding Results
 
-##### Quality Metrics
+##### Input Similarity Indicators
+
+The web interface compares the denoised output with the uploaded noisy input.
+These values are not ground-truth quality measurements and should not be used
+to validate scientific accuracy.
 
 **PSNR (Peak Signal-to-Noise Ratio)**
 - **Range**: 0-∞ dB (typically 20-50 dB for microscopy)

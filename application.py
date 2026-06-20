@@ -18,7 +18,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 
 import config
 from services.bootstrap import ensure_directories
-from services.denoiser import ModelNotReadyError, get_denoiser_service
+from services.denoiser import InvalidImageError, ModelNotReadyError, get_denoiser_service
 
 logging.basicConfig(
     level=logging.INFO,
@@ -125,6 +125,7 @@ def create_app() -> Flask:
                 mode = "auto"
 
             raw = file.read()
+            svc.validate_upload(raw)
             upload_path = config.UPLOAD_DIR / f"upload_{Path(file.filename).name}"
             upload_path.write_bytes(raw)
 
@@ -148,6 +149,7 @@ def create_app() -> Flask:
                 "success": True,
                 "psnr": result["psnr"],
                 "ssim": result["ssim"],
+                "metric_reference": result["metric_reference"],
                 "download_url": f"/api/download/{result['output_filename']}",
                 "original_b64": to_b64(original),
                 "denoised_b64": to_b64(denoised),
@@ -160,6 +162,8 @@ def create_app() -> Flask:
         except ModelNotReadyError as exc:
             logger.error("Model not ready: %s", exc)
             return jsonify({"success": False, "error": str(exc)}), 503
+        except InvalidImageError as exc:
+            return jsonify({"success": False, "error": str(exc)}), 400
         except MemoryError as exc:
             logger.error("Memory error during denoise: %s", exc)
             return jsonify({"success": False, "error": "Insufficient memory. Try a smaller image."}), 507

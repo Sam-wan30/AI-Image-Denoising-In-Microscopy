@@ -29,7 +29,7 @@
           <span class="ns-gradient-text">AI Microscopy</span><br />Image Denoising
         </h1>
         <p class="ns-hero-desc">
-          Upload a noisy microscopy image, run the trained U-Net, and download a cleaner result with PSNR and SSIM metrics.
+          Upload a noisy microscopy image, run the trained U-Net, and download a cleaner result with input-similarity indicators.
         </p>
       </div>
     </section>
@@ -103,17 +103,17 @@
         <div class="ns-section" id="metrics-section">
           <div class="ns-section-head">
             <span class="ns-section-num">/03</span>
-            <span class="ns-section-title">Quality Metrics</span>
-            <span class="ns-section-sub">— QUANTITATIVE FIDELITY</span>
+            <span class="ns-section-title">Input Similarity</span>
+            <span class="ns-section-sub">— NOT GROUND-TRUTH QUALITY</span>
           </div>
           <div class="ns-metrics-grid">
             <div class="ns-glass ns-metric-card">
-              <div class="ns-metric-desc">PSNR · Peak Signal-to-Noise Ratio</div>
+              <div class="ns-metric-desc">PSNR · Output vs noisy input</div>
               <div class="ns-metric-value" id="psnr-value">—</div>
               <div class="ns-metric-bar"><div class="ns-metric-bar-fill" id="psnr-bar" style="width:0%"></div></div>
             </div>
             <div class="ns-glass ns-metric-card">
-              <div class="ns-metric-desc">SSIM · Structural Similarity</div>
+              <div class="ns-metric-desc">SSIM · Output vs noisy input</div>
               <div class="ns-metric-value" id="ssim-value">—</div>
               <div class="ns-metric-bar"><div class="ns-metric-bar-fill" id="ssim-bar" style="width:0%"></div></div>
             </div>
