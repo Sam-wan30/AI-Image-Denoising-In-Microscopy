@@ -34,6 +34,7 @@ from utils.salt_pepper import denoise_salt_pepper, estimate_salt_pepper_ratio
 
 DEFAULT_MODEL_PATH = config.MODEL_PATH
 FALLBACK_MODEL_PATHS = [
+    Path("models/deploy/model.onnx"),  # Prioritize ONNX for stability
     DEFAULT_MODEL_PATH,
     Path("models/deploy/model.pt"),
     Path("models/overfit_residual_blocks/best_model.pth"),
@@ -43,7 +44,7 @@ MAX_UPLOAD_MB = config.MAX_UPLOAD_MB
 
 
 st.set_page_config(
-    page_title="NeuroScope · AI Microscopy Denoising",
+    page_title="FluoClean AI · AI Microscopy Denoising",
     page_icon="🔬",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -238,12 +239,18 @@ class StreamlitDenoisingApp:
             model = st.session_state.model
 
             if isinstance(model, ort.InferenceSession):
-                input_array = preprocess_tensor(image, IMAGE_SIZE, as_tensor=False)
+                input_shape = model.get_inputs()[0].shape
+                model_size = (
+                    (input_shape[3], input_shape[2])
+                    if isinstance(input_shape[2], int) and isinstance(input_shape[3], int)
+                    else IMAGE_SIZE
+                )
+                input_array = preprocess_tensor(image, model_size, as_tensor=False)
                 input_array = input_array[np.newaxis, np.newaxis, :, :].astype(np.float32)
                 original_shape = load_grayscale(image).shape[:2]
                 input_name = model.get_inputs()[0].name
                 output = model.run(None, {input_name: input_array})[0]
-                return postprocess_tensor(output, original_shape, IMAGE_SIZE)
+                return postprocess_tensor(output, original_shape, model_size)
 
             input_tensor, original_shape = self.preprocess_image(image)
             import torch
@@ -257,17 +264,69 @@ class StreamlitDenoisingApp:
             return None
 
     def calculate_metrics(self, original: np.ndarray, denoised: np.ndarray) -> dict[str, float]:
-        """Calculate PSNR and SSIM metrics."""
+        """Calculate output-to-input similarity (not ground-truth quality)."""
         try:
+            # Debug info
+            st.info(f"Original shape: {original.shape}, dtype: {original.dtype}, range: [{original.min()}, {original.max()}]")
+            st.info(f"Denoised shape: {denoised.shape}, dtype: {denoised.dtype}, range: [{denoised.min()}, {denoised.max()}]")
+            
+            # Check if images have the same shape
+            if original.shape != denoised.shape:
+                st.warning(f"Shape mismatch: original {original.shape} vs denoised {denoised.shape}")
+                # Try to resize denoised to match original
+                from PIL import Image
+                if len(original.shape) == 3:
+                    h, w = original.shape[:2]
+                    denoised_pil = Image.fromarray(denoised.astype(np.uint8)).resize((w, h))
+                    denoised = np.array(denoised_pil)
+                else:
+                    h, w = original.shape
+                    denoised_pil = Image.fromarray(denoised.astype(np.uint8)).resize((w, h))
+                    denoised = np.array(denoised_pil)
+            
+            # Ensure both images are in the same format
             original_norm = original.astype(np.float32) / 255.0
             denoised_norm = denoised.astype(np.float32) / 255.0
+            
+            # Handle different channel dimensions
+            if len(original_norm.shape) == 3 and original_norm.shape[2] == 3:
+                original_norm = original_norm.mean(axis=2, keepdims=True)
+            if len(denoised_norm.shape) == 3 and denoised_norm.shape[2] == 3:
+                denoised_norm = denoised_norm.mean(axis=2, keepdims=True)
+            
+            # Ensure 2D format for metrics calculation
+            if len(original_norm.shape) == 3:
+                original_norm = original_norm.squeeze()
+            if len(denoised_norm.shape) == 3:
+                denoised_norm = denoised_norm.squeeze()
+                
+            st.info(f"Normalized shapes - Original: {original_norm.shape}, Denoised: {denoised_norm.shape}")
+                
+            # Calculate PSNR (should always work)
+            psnr = float(calculate_psnr(denoised_norm, original_norm, max_val=1.0))
+            st.info(f"PSNR calculated: {psnr:.2f}")
+            
+            # Calculate SSIM (may fail if cv2 is not available)
+            try:
+                ssim = float(calculate_ssim(denoised_norm, original_norm, max_val=1.0))
+                st.info(f"SSIM calculated: {ssim:.4f}")
+            except Exception as ssim_exc:
+                st.warning(f"SSIM calculation failed: {ssim_exc}")
+                ssim = None
+                
             return {
-                "psnr": float(calculate_psnr(denoised_norm, original_norm, max_val=1.0)),
-                "ssim": float(calculate_ssim(denoised_norm, original_norm, max_val=1.0)),
+                "psnr": psnr,
+                "ssim": ssim,
             }
         except Exception as exc:
-            st.error(f"Error calculating metrics: {exc}")
-            return {}
+            st.error(f"Metrics calculation failed: {exc}")
+            import traceback
+            st.error(traceback.format_exc())
+            # Return fallback values if calculation fails
+            return {
+                "psnr": None,
+                "ssim": None,
+            }
 
     def run(self) -> None:
         """Render the Streamlit UI."""

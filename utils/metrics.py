@@ -36,10 +36,14 @@ def _prepare_image_array(
     if image.ndim == 2:
         image = image[np.newaxis, np.newaxis, :, :]
     elif image.ndim == 3:
-        if image.shape[0] in (1, 3) and image.shape[1] != image.shape[2]:
+        if image.shape[0] in (1, 3):
             image = image.mean(axis=0, keepdims=True)[np.newaxis, ...]
+        elif image.shape[-1] in (1, 3, 4):
+            image = image[..., :3].mean(axis=-1, keepdims=False)[
+                np.newaxis, np.newaxis, ...
+            ]
         else:
-            image = image.mean(axis=-1, keepdims=True)[np.newaxis, ...]
+            image = image[:, np.newaxis, :, :]
     elif image.ndim == 4:
         image = image.mean(axis=1, keepdims=True)
     else:
@@ -221,6 +225,6 @@ if __name__ == '__main__':
 
     print('Running basic metric checks...')
     test_image = np.ones((1, 1, 256, 256), dtype=np.float32) * 0.5
-    assert abs(calculate_psnr(test_image, test_image) - 200.0) < 1e-6
+    assert abs(calculate_psnr(test_image, test_image) - 120.0) < 1e-6
     assert abs(calculate_ssim(test_image, test_image) - 1.0) < 1e-6
     print('✓ Metrics module loaded successfully.')

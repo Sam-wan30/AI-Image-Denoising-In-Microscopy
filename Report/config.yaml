@@ -1,0 +1,190 @@
+# FluoClean AI Report Configuration
+# Customize these settings for your specific requirements
+
+# Personal Information
+personal:
+  student_name: "[Student Name]"
+  roll_number: "[Roll Number]"
+  guide_name: "[Guide Name]"
+  guide_designation: "[Designation]"
+  department: "[Department]"
+  hod_name: "[Head of Department]"
+  hod_designation: "[Head of Department]"
+  institution: "[University/College Name]"
+  academic_year: "2024-2025"
+
+# Document Settings
+document:
+  title: "FluoClean AI: AI-Microscopy Image Denoising"
+  degree: "Bachelor of Technology"
+  branch: "Data Science and Artificial Intelligence"
+  font_size: 12pt
+  paper_size: a4paper
+
+# Page Margins (in inches)
+margins:
+  left: 1.5
+  right: 1.0
+  top: 1.0
+  bottom: 1.0
+
+# Font Settings
+fonts:
+  main_font: "Times New Roman"
+  heading_font: "Times New Roman"
+  mono_font: "Courier New"
+  body_size: 12
+  heading1_size: 16
+  heading2_size: 14
+  heading3_size: 12
+  caption_size: 10
+
+# Line Spacing
+spacing:
+  body: 1.5
+  captions: 1.0
+  references: 1.0
+
+# Figure Settings
+figures:
+  default_width: "0.8\\textwidth"
+  default_placement: "H"
+  caption_position: "below"
+  label_prefix: "fig"
+
+# Table Settings
+tables:
+  caption_position: "below"
+  label_prefix: "tab"
+  row_height: "1.2"
+  column_separation: "1.5pt"
+
+# Reference Settings
+references:
+  style: "IEEE"
+  sort_order: "alphabetical"
+  citation_style: "numeric"
+  max_authors: 3
+  et_al_threshold: 4
+
+# Compilation Settings
+compilation:
+  compiler: "pdflatex"  # Options: pdflatex, xelatex, lualatex
+  passes: 3
+  shell_escape: false
+  halt_on_error: true
+
+# Output Settings
+output:
+  filename: "FluoClean_AI_Report"
+  format: "pdf"  # Options: pdf, docx
+  include_toc: true
+  include_lof: true
+  include_lot: true
+
+# Chapter Settings
+chapters:
+  include_front_matter: true
+  include_introduction: true
+  include_literature_review: true
+  include_proposed_system: true
+  include_methodology: true
+  include_experimental_setup: true
+  include_results: true
+  include_discussion: true
+  include_conclusion: true
+  include_references: true
+  include_appendix: true
+
+# Appendix Settings
+appendix:
+  include_mathematical_derivations: true
+  include_code_snippets: true
+  include_additional_results: true
+  include_user_guide: true
+
+# Logo Settings
+logo:
+  enabled: true
+  filename: "placeholder_logo.png"
+  width: "3cm"
+  position: "center"
+
+# Color Settings (for digital versions)
+colors:
+  use_color: false
+  heading_color: "black"
+  link_color: "blue"
+  citation_color: "black"
+
+# Hyperlink Settings
+hyperlinks:
+  enabled: true
+  color_links: true
+  link_color: "blue"
+  cite_color: "black"
+  url_color: "blue"
+
+# Draft Mode Settings
+draft:
+  enabled: false
+  show_watermark: false
+  watermark_text: "DRAFT"
+  watermark_opacity: 0.1
+
+# Language Settings
+language:
+  main: "english"
+  hyphenation: "english"
+  babel_options: []
+
+# Custom Commands (optional)
+custom_commands:
+  # Add any custom LaTeX commands here
+  # example: "\\newcommand{\\mycommand}{...}"
+
+# Bibliography Settings
+bibliography:
+  use_bib_file: false  # Set to true to use references.bib
+  bib_file: "references.bib"
+  bib_style: "ieeetr"
+  backend: "bibtex"
+
+# Directory Structure
+directories:
+  images: "images"
+  figures: "figures"
+  tables: "tables"
+  output: "output"
+  backup: "backup"
+
+# Backup Settings
+backup:
+  enabled: true
+  backup_before_compile: true
+  backup_directory: "backup"
+  max_backups: 5
+
+# Quality Checks
+quality_checks:
+  spell_check: true
+  grammar_check: true
+  citation_check: true
+  reference_check: true
+  figure_check: true
+  table_check: true
+
+# Submission Settings
+submission:
+  target: "university"  # Options: university, conference, journal
+  format_requirements: "standard"
+  plagiarism_check: false
+  word_count_check: true
+  max_word_count: 15000
+
+# Debug Settings
+debug:
+  verbose: false
+  show_warnings: true
+  log_compilation: true
+  log_file: "compile.log"

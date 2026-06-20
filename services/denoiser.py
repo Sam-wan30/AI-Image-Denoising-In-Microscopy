@@ -6,7 +6,6 @@ This module supports PyTorch (`.pt`) checkpoints for inference.
 from __future__ import annotations
 
 import logging
-import os
 import threading
 import uuid
 from io import BytesIO
@@ -14,7 +13,7 @@ from pathlib import Path
 from typing import Any, Union
 
 import numpy as np
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 import config
 from services.model_utils import detect_model_type
@@ -45,6 +44,10 @@ class ModelNotReadyError(RuntimeError):
     """Raised when the model cannot be loaded or is still loading."""
 
 
+class InvalidImageError(ValueError):
+    """Raised when uploaded bytes are not a safe, supported image."""
+
+
 class DenoiserService:
     """Loads the U-Net once and runs inference.
 
@@ -53,6 +56,7 @@ class DenoiserService:
 
     def __init__(self) -> None:
         self.device = config.DEVICE
+        self.image_size = IMAGE_SIZE
         self.torch = None
         self.onnx_session = None
         self.model: Any | None = None
@@ -62,7 +66,7 @@ class DenoiserService:
 
     @property
     def is_ready(self) -> bool:
-        return self.model is not None
+        return self.model is not None or self.onnx_session is not None
 
     @property
     def status(self) -> dict[str, Any]:
@@ -119,10 +123,31 @@ class DenoiserService:
             if path.suffix.lower() == ".onnx":
                 if ort is None:
                     raise RuntimeError("onnxruntime is not installed; cannot load .onnx model.")
-                session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+                options = ort.SessionOptions()
+                options.enable_cpu_mem_arena = False
+                options.enable_mem_pattern = False
+                options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+                options.intra_op_num_threads = 1
+                options.inter_op_num_threads = 1
+                options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+                options.add_session_config_entry("session.disable_prepacking", "1")
+                session = ort.InferenceSession(
+                    str(path),
+                    sess_options=options,
+                    providers=["CPUExecutionProvider"],
+                )
+                input_shape = session.get_inputs()[0].shape
+                if isinstance(input_shape[2], int) and isinstance(input_shape[3], int):
+                    self.image_size = (input_shape[3], input_shape[2])
                 self.onnx_session = session
                 self.model = None
-                self.model_info = {"type": "ONNX U-Net", "parameters": None, "device": "cpu", "path": str(path)}
+                self.model_info = {
+                    "type": "ONNX U-Net",
+                    "parameters": None,
+                    "device": "cpu",
+                    "path": str(path),
+                    "image_size": list(self.image_size),
+                }
                 self._load_error = None
                 logger.info("Loaded ONNX model: %s (Execution Provider: CPUExecutionProvider)", path)
                 return
@@ -146,9 +171,11 @@ class DenoiserService:
             if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
                 model_state_dict = checkpoint["model_state_dict"]
                 model_type = checkpoint.get("model_type") or detect_model_type(list(model_state_dict.keys()))
+                model_config = checkpoint.get("model_config") or {}
             else:
                 model_state_dict = checkpoint
                 model_type = detect_model_type(list(model_state_dict.keys()))
+                model_config = {}
 
             state_dict_keys = list(model_state_dict.keys())
             if model_type == "residual":
@@ -161,7 +188,14 @@ class DenoiserService:
             in_channels = model_state_dict[first_conv_key].shape[1]
             out_channels = model_state_dict[last_conv_key].shape[0]
 
-            model = create_unet_model(model_type=model_type, in_channels=in_channels, out_channels=out_channels)
+            model = create_unet_model(
+                model_type=model_type,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                base_channels=int(model_config.get("base_channels", 64)),
+                depth=int(model_config.get("depth", 4)),
+                bilinear=bool(model_config.get("bilinear", True)),
+            )
             missing, unexpected = model.load_state_dict(model_state_dict, strict=False)
             if missing or unexpected:
                 raise RuntimeError(f"Incompatible checkpoint: missing={len(missing)}, unexpected={len(unexpected)}")
@@ -170,7 +204,18 @@ class DenoiserService:
             model.eval()
 
             self.model = model
-            self.model_info = {"type": model_type, "parameters": sum(p.numel() for p in model.parameters()), "device": config.DEVICE}
+            configured_size = int(model_config.get("image_size", IMAGE_SIZE[0]))
+            self.image_size = (configured_size, configured_size)
+            self.model_info = {
+                "type": model_type,
+                "parameters": sum(p.numel() for p in model.parameters()),
+                "device": config.DEVICE,
+                "epoch": checkpoint.get("epoch") if isinstance(checkpoint, dict) else None,
+                "seed": checkpoint.get("seed") if isinstance(checkpoint, dict) else None,
+                "val_psnr": checkpoint.get("val_psnr") if isinstance(checkpoint, dict) else None,
+                "val_ssim": checkpoint.get("val_ssim") if isinstance(checkpoint, dict) else None,
+                "test_metrics": checkpoint.get("test_metrics") if isinstance(checkpoint, dict) else None,
+            }
             self._load_error = None
             logger.info("Model loaded (%s U-Net)", model_type)
 
@@ -178,13 +223,13 @@ class DenoiserService:
         gray = load_grayscale(image)
         original_shape = gray.shape[:2]
         # Return a torch.Tensor when PyTorch backend is used; otherwise a numpy array for ONNX.
-        tensor = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=True) if torch is not None else preprocess_tensor(gray, IMAGE_SIZE, as_tensor=False)
+        tensor = preprocess_tensor(gray, self.image_size, as_tensor=True) if torch is not None else preprocess_tensor(gray, self.image_size, as_tensor=False)
         return tensor, original_shape
 
     def _preprocess_numpy(self, image: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
         gray = load_grayscale(image)
         original_shape = gray.shape[:2]
-        arr = preprocess_tensor(gray, IMAGE_SIZE, as_tensor=False)
+        arr = preprocess_tensor(gray, self.image_size, as_tensor=False)
         # ONNXRuntime expects shape (N, C, H, W)
         inp = np.expand_dims(np.expand_dims(arr.astype(np.float32), axis=0), axis=0)
         return inp, original_shape
@@ -216,7 +261,7 @@ class DenoiserService:
                 inp, original_shape = self._preprocess_numpy(image)
                 input_name = self.onnx_session.get_inputs()[0].name
                 out = self.onnx_session.run(None, {input_name: inp})[0]
-                return postprocess_tensor(out, original_shape, IMAGE_SIZE)
+                return postprocess_tensor(out, original_shape, self.image_size)
             raise ModelNotReadyError("Model is not loaded.")
 
         # PyTorch inference path (model is a torch.nn.Module)
@@ -239,14 +284,14 @@ class DenoiserService:
         mode: str = "auto",
     ) -> dict[str, Any]:
         """Run denoising and return metrics + saved output paths."""
-        pil = Image.open(BytesIO(file_bytes)).convert("RGB")
+        pil = self.validate_upload(file_bytes)
         image_array = np.asarray(pil)
 
         denoised = self.denoise(pil, mode=mode)
 
         # Use numpy-based metrics to avoid requiring torch during runtime
         try:
-            orig_norm = image_array.astype(np.float32) / 255.0
+            orig_norm = load_grayscale(image_array).astype(np.float32) / 255.0
             den_norm = denoised.astype(np.float32) / 255.0
             psnr = float(calculate_psnr(den_norm, orig_norm, max_val=1.0))
             ssim = float(calculate_ssim(den_norm, orig_norm, max_val=1.0))
@@ -263,10 +308,35 @@ class DenoiserService:
             "job_id": job_id,
             "psnr": round(psnr, 2),
             "ssim": round(ssim, 4),
+            "metric_reference": "noisy_input",
             "output_filename": out_name,
             "width": int(image_array.shape[1]) if image_array.ndim >= 2 else 0,
             "height": int(image_array.shape[0]) if image_array.ndim >= 2 else 0,
         }
+
+    @staticmethod
+    def validate_upload(file_bytes: bytes) -> Image.Image:
+        """Decode an image and reject corrupt or unreasonably large inputs."""
+        if not file_bytes:
+            raise InvalidImageError("Uploaded image is empty.")
+        try:
+            with Image.open(BytesIO(file_bytes)) as probe:
+                probe.verify()
+            image = Image.open(BytesIO(file_bytes))
+            width, height = image.size
+            if width <= 0 or height <= 0:
+                raise InvalidImageError("Image dimensions must be positive.")
+            if width * height > config.MAX_IMAGE_PIXELS:
+                raise InvalidImageError(
+                    f"Image is too large ({width}x{height}); maximum is "
+                    f"{config.MAX_IMAGE_PIXELS:,} pixels."
+                )
+            image.load()
+            return image.convert("RGB")
+        except (Image.DecompressionBombError, UnidentifiedImageError, OSError) as exc:
+            raise InvalidImageError(
+                "Uploaded file is not a valid supported image."
+            ) from exc
 
 
 def get_denoiser_service() -> DenoiserService:

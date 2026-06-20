@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import os
+from datetime import datetime
 
 import numpy as np
 import streamlit as st
@@ -49,7 +50,7 @@ def _render_compare_image(column, image) -> None:
 
 
 def render_main_layout(app) -> None:
-    """Render the NeuroScope-themed main page; delegates inference to `app`."""
+    """Render the FluoClean AI-themed main page; delegates inference to `app`."""
     model_online = st.session_state.get("model_loaded", False)
     model_label = "Residual U-Net"
     if info := st.session_state.get("model_info"):
@@ -152,18 +153,25 @@ def render_main_layout(app) -> None:
                 progress.progress(100)
 
                 if result is not None:
-                    metrics = app.calculate_metrics(image_array, result)
+                    # Always calculate metrics, even if using non-U-Net modes
+                    try:
+                        metrics = app.calculate_metrics(image_array, result)
+                    except Exception as exc:
+                        st.warning(f"Metrics calculation encountered an issue: {exc}")
+                        metrics = {"psnr": None, "ssim": None}
+                    
                     st.session_state["denoised_result"] = result
                     st.session_state["result_metrics"] = metrics
                     st.session_state["upload_name"] = upload_name
                     st.rerun()
 
     metrics = st.session_state.get("result_metrics")
-    if denoised_image is not None and metrics:
-        render_section_heading("03", "Quality Metrics", "QUANTITATIVE FIDELITY")
+    if denoised_image is not None:
+        render_section_heading("03", "Input Similarity", "NOT GROUND-TRUTH QUALITY")
+        # Display metrics even if calculation failed, showing fallback values
         render_metric_cards_row(
-            psnr=metrics.get("psnr"),
-            ssim=metrics.get("ssim"),
+            psnr=metrics.get("psnr") if metrics else None,
+            ssim=metrics.get("ssim") if metrics else None,
         )
 
         st.markdown('<div class="ns-spacer-sm"></div>', unsafe_allow_html=True)
@@ -171,13 +179,21 @@ def render_main_layout(app) -> None:
         img_byte_arr = io.BytesIO()
         denoised_pil.save(img_byte_arr, format="PNG")
         img_byte_arr.seek(0)
-        st.download_button(
-            label="⬇ Download denoised image",
-            data=img_byte_arr,
-            file_name=f"denoised_{st.session_state.get('upload_name', 'output.png')}",
-            mime="image/png",
-            width='stretch',
-        )
+        
+        # Generate timestamped filename
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        filename = f"denoised-image-{timestamp}.png"
+        
+        try:
+            st.download_button(
+                label="⬇ Download denoised image",
+                data=img_byte_arr,
+                file_name=filename,
+                mime="image/png",
+                width='stretch',
+            )
+        except Exception as exc:
+            st.error(f"Download failed: {exc}")
 
     render_section_heading("04", "Architecture", "UNDER THE HOOD")
     render_architecture_section()

@@ -3,16 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeuroScope · AI Microscopy Denoising</title>
+  <title>FluoClean AI · AI Microscopy Denoising</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/fluoclean-logo.png') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
 </head>
 <body>
   <div class="container">
     <nav class="ns-navbar">
       <div class="ns-brand">
-        <div class="ns-brand-icon">🔬</div>
-        <div>
-          <div class="ns-brand-name">NeuroScope</div>
+        <div class="ns-brand-logo">
+          <img
+            src="{{ url_for('static', filename='images/fluoclean-logo.png') }}"
+            alt="FluoClean AI logo"
+            width="42"
+            height="42"
+          />
+        </div>
+        <div class="ns-brand-text">
+          <div class="ns-brand-name">FluoClean AI</div>
           <div class="ns-brand-tag">AI Denoising Lab</div>
         </div>
       </div>
@@ -29,7 +37,7 @@
           <span class="ns-gradient-text">AI Microscopy</span><br />Image Denoising
         </h1>
         <p class="ns-hero-desc">
-          Upload a noisy microscopy image, run the trained U-Net, and download a cleaner result with PSNR and SSIM metrics.
+          Upload a noisy fluorescence microscopy image, run the trained U-Net, and download a cleaner reconstruction with input-similarity indicators.
         </p>
       </div>
     </section>
@@ -45,7 +53,7 @@
         </div>
         <div class="ns-glass ns-upload-wrap">
           <div class="ns-upload-icon">⬆</div>
-          <p><strong>Drop your microscopy image here</strong></p>
+          <p><strong>Drop your fluorescence microscopy image here</strong></p>
           <p class="ns-upload-hint">PNG, JPG, TIFF · up to 50MB</p>
           <input class="ns-file-input" type="file" id="image-input" name="image" accept=".png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp" required />
           <div class="ns-tags">
@@ -103,17 +111,17 @@
         <div class="ns-section" id="metrics-section">
           <div class="ns-section-head">
             <span class="ns-section-num">/03</span>
-            <span class="ns-section-title">Quality Metrics</span>
-            <span class="ns-section-sub">— QUANTITATIVE FIDELITY</span>
+            <span class="ns-section-title">Input Similarity</span>
+            <span class="ns-section-sub">— NOT GROUND-TRUTH QUALITY</span>
           </div>
           <div class="ns-metrics-grid">
             <div class="ns-glass ns-metric-card">
-              <div class="ns-metric-desc">PSNR · Peak Signal-to-Noise Ratio</div>
+              <div class="ns-metric-desc">PSNR · Output vs noisy input</div>
               <div class="ns-metric-value" id="psnr-value">—</div>
               <div class="ns-metric-bar"><div class="ns-metric-bar-fill" id="psnr-bar" style="width:0%"></div></div>
             </div>
             <div class="ns-glass ns-metric-card">
-              <div class="ns-metric-desc">SSIM · Structural Similarity</div>
+              <div class="ns-metric-desc">SSIM · Output vs noisy input</div>
               <div class="ns-metric-value" id="ssim-value">—</div>
               <div class="ns-metric-bar"><div class="ns-metric-bar-fill" id="ssim-bar" style="width:0%"></div></div>
             </div>
@@ -124,7 +132,16 @@
     </form>
 
     <footer class="ns-footer">
-      <span>NeuroScope · Research demo</span>
+      <div class="ns-footer-brand">
+        <img
+          class="ns-footer-logo"
+          src="{{ url_for('static', filename='images/fluoclean-logo.png') }}"
+          alt="FluoClean AI logo"
+          width="36"
+          height="36"
+        />
+        <span>&copy; 2026 FluoClean AI · Research demo</span>
+      </div>
       <span>Powered by PyTorch U-Net</span>
     </footer>
   </div>

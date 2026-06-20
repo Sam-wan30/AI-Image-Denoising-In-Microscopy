@@ -23,6 +23,87 @@
   let downloadUrl = null;
   let previewUrl = null;
 
+  function generateTimestampedFilename() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `denoised-image-${year}${month}${day}-${hours}${minutes}${seconds}.png`;
+  }
+
+  async function downloadImage(base64Data, filename) {
+    try {
+      // Convert base64 to blob
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      showAlert('Download failed. Please try again.');
+    }
+  }
+
+  async function downloadFromUrl(url, filename) {
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Download failed:', err);
+      showAlert('Download failed. Please try again.');
+    }
+  }
+
+  async function handleDownload(denoisedB64, downloadUrl, originalFilename) {
+    try {
+      const filename = generateTimestampedFilename();
+      
+      // Try to use the download URL from backend first
+      if (downloadUrl && downloadUrl.startsWith('/api/download/')) {
+        await downloadFromUrl(downloadUrl, filename);
+      } else if (denoisedB64) {
+        // Fallback to Base64 data if download URL is not available
+        await downloadImage(denoisedB64, filename);
+      } else {
+        showAlert('No denoised image available for download.');
+      }
+    } catch (err) {
+      console.error('Download failed:', err);
+      showAlert('Download failed. Please try again.');
+    }
+  }
+
+  downloadBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const currentDownloadUrl = downloadBtn.href;
+    const denoisedSrc = denImg.src;
+    const denoisedB64 = denoisedSrc ? denoisedSrc.replace('data:image/png;base64,', '') : null;
+    
+    await handleDownload(denoisedB64, currentDownloadUrl, 'denoised-image.png');
+  });
+
   function showAlert(msg) {
     alertBox.textContent = msg;
     alertBox.classList.add("show");
@@ -141,8 +222,8 @@
       psnrBar.style.width = Math.min(100, (data.psnr / 40) * 100) + "%";
       ssimBar.style.width = Math.min(100, data.ssim * 100) + "%";
 
+      // Store download data for the download button
       downloadUrl = data.download_url;
-      downloadBtn.href = downloadUrl;
       downloadBtn.classList.remove("hidden");
       metricsSection.classList.remove("hidden");
       resultsSection.classList.remove("hidden");

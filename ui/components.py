@@ -1,4 +1,4 @@
-"""Reusable UI components for the NeuroScope-themed Streamlit frontend."""
+"""Reusable UI components for the FluoClean AI-themed Streamlit frontend."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def render_navbar(*, model_online: bool, model_label: str = "Residual U-Net") ->
             <div class="ns-brand">
                 <div class="ns-brand-icon">🔬</div>
                 <div class="ns-brand-text">
-                    <span class="ns-brand-name">NeuroScope</span>
+                    <span class="ns-brand-name">FluoClean AI</span>
                     <span class="ns-brand-tag">AI Denoising Lab</span>
                 </div>
             </div>
@@ -182,7 +182,7 @@ def render_metric_cards_row(
             <div class="ns-glass ns-metric-card">
                 <div class="ns-metric-icon">〰</div>
                 <div class="ns-metric-title">PSNR</div>
-                <div class="ns-metric-desc">Peak Signal-to-Noise Ratio</div>
+                <div class="ns-metric-desc">Output vs noisy input</div>
                 <div class="ns-metric-value">{psnr_val}</div>
                 <div class="ns-metric-bar"><div class="ns-metric-bar-fill" style="width:{psnr_pct:.0f}%"></div></div>
                 <div class="ns-metric-unit">dB</div>
@@ -190,7 +190,7 @@ def render_metric_cards_row(
             <div class="ns-glass ns-metric-card">
                 <div class="ns-metric-icon">⚡</div>
                 <div class="ns-metric-title">SSIM</div>
-                <div class="ns-metric-desc">Structural Similarity Index</div>
+                <div class="ns-metric-desc">Output vs noisy input</div>
                 <div class="ns-metric-value">{ssim_val}</div>
                 <div class="ns-metric-bar"><div class="ns-metric-bar-fill" style="width:{ssim_pct:.0f}%"></div></div>
                 <div class="ns-metric-unit">0 – 1 scale</div>
@@ -257,7 +257,7 @@ def render_footer() -> None:
         <footer class="ns-footer">
             <div class="ns-footer-left">
                 <span>🔬</span>
-                <span>NeuroScope · Research demo · © 2026</span>
+                <span>FluoClean AI · Research demo · © 2026</span>
             </div>
             <div class="ns-footer-links">
                 <a class="ns-footer-link" href="#">Paper</a>

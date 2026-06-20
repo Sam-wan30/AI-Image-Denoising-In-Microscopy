@@ -15,6 +15,11 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 import argparse
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from utils.preprocessing import normalize_image, resize_image
 
 def load_dataset_info(csv_path):
     """Load dataset information from CSV file."""
@@ -51,20 +56,9 @@ def resize_and_normalize_image(image, target_size=(256, 256)):
         else:
             image = image[0]
     
-    # Resize image
-    resized_image = cv2.resize(image, target_size, interpolation=cv2.INTER_AREA)
-    
-    # Normalize to [0,1]
-    if resized_image.dtype != np.float32:
-        resized_image = resized_image.astype(np.float32)
-    
-    # Handle different data ranges
-    if resized_image.max() > 1.0:
-        resized_image = resized_image / resized_image.max()
-    else:
-        resized_image = np.clip(resized_image, 0, 1)
-    
-    return resized_image
+    # Apply the same fixed-range normalization used by training and inference.
+    # Per-image max normalization would destroy relative intensity calibration.
+    return normalize_image(resize_image(image, target_size))
 
 def process_h5_file(h5_path, dataset_info, noisy_dir, clean_dir, max_samples=None):
     """

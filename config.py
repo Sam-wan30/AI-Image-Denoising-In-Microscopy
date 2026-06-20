@@ -12,9 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", BASE_DIR / "uploads"))
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", BASE_DIR / "outputs"))
 
-# Model path - supports PyTorch checkpoints
-_default_model = BASE_DIR / "models" / "deploy" / "model.pt"
+# Model path - supports ONNX and PyTorch checkpoints
+_default_model = BASE_DIR / "models" / "deploy" / "model.onnx"
 MODEL_PATH = Path(os.environ.get("MODEL_PATH", _default_model))
+
+# Model URL for downloading (optional, for deployment)
+MODEL_URL = os.environ.get("MODEL_URL")
 
 
 
@@ -23,6 +26,10 @@ try:
     MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "50"))
 except (ValueError, TypeError):
     MAX_UPLOAD_MB = 50
+try:
+    MAX_IMAGE_PIXELS = int(os.environ.get("MAX_IMAGE_PIXELS", "16000000"))
+except (ValueError, TypeError):
+    MAX_IMAGE_PIXELS = 16_000_000
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".tif", ".tiff", ".bmp"}
 DEVICE = os.environ.get("DEVICE", "cpu")
 

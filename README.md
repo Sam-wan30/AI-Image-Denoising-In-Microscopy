@@ -1,17 +1,20 @@
 <div align="center">
 
-# NeuroScope
+<img src="docs/assets/fluoclean-horizontal-logo.png" alt="FluoClean AI horizontal logo" width="680" />
+
+# FluoClean AI
 ### AI-Powered Microscopy Image Denoising System
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Render-46E3B7?style=flat-square&logo=render&logoColor=white)](https://ai-image-denoising-in-microscopy-m2u0.onrender.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 
 **Advanced deep learning pipeline for restoring microscopy images using state-of-the-art U-Net architectures with CARE-inspired training methodology.**
 
-[🚀 Features](#-features) · [🏗️ Architecture](#-system-architecture) · [📚 Documentation](#-documentation) · [🔧 Installation](#-installation--setup) · [💡 Usage](#-usage-guide)
+[🌐 Live Demo](https://ai-image-denoising-in-microscopy-m2u0.onrender.com/) · [🚀 Features](#-features) · [🏗️ Architecture](#-system-architecture) · [📚 Documentation](#-documentation) · [🔧 Installation](#-installation--setup) · [💡 Usage](#-usage-guide)
 
 </div>
 
@@ -19,7 +22,15 @@
 
 ## 📋 Overview
 
-NeuroScope is a production-grade AI system designed to address the critical challenge of noise in microscopy imaging. Microscopy images often suffer from photon shot noise, sensor noise, and various artifacts that obscure fine cellular structures and compromise quantitative analysis. This project implements a complete end-to-end deep learning pipeline inspired by the groundbreaking CARE (Content-Aware Image Restoration) framework, specifically optimized for fluorescence microscopy and related imaging modalities.
+FluoClean AI is a research prototype for microscopy image denoising. Microscopy images often suffer from photon shot noise, sensor noise, and artifacts that obscure fine cellular structures. The project implements an end-to-end deep learning pipeline inspired by CARE (Content-Aware Image Restoration), with a deployable Flask demonstration. It is not validated for diagnostic or quantitative scientific use.
+
+### 🌐 Live Deployment
+
+Try the deployed Flask application on Render:
+
+**[Launch FluoClean AI →](https://ai-image-denoising-in-microscopy-m2u0.onrender.com/)**
+
+The live demo supports microscopy image upload, multiple denoising modes, side-by-side comparison, input-similarity indicators, and denoised-image download.
 
 ### 🎯 Problem Statement
 
@@ -32,18 +43,18 @@ Microscopy imaging is fundamental to biological research, medical diagnostics, a
 
 ### 💡 Why This Project Matters
 
-NeuroScope demonstrates the practical application of deep learning to solve real-world scientific problems:
+FluoClean AI demonstrates the practical application of deep learning to solve real-world scientific problems:
 - **Preserves Biological Fidelity**: Maintains fine structural details while removing noise
-- **Quantitative Validation**: Provides PSNR and SSIM metrics for objective quality assessment
+- **Restoration Metrics**: Reports PSNR and SSIM when aligned clean targets exist
 - **Multiple Architectures**: Implements Standard, Enhanced, and Residual U-Net variants for optimal performance
-- **Production-Ready**: Includes web application, CLI tools, and comprehensive testing
+- **Deployment Demo**: Includes a web application, CLI tools, and inference checks
 - **Research-Backed**: Based on peer-reviewed CARE methodology with custom improvements
 
 ### 🎯 Key Objectives
 
 - Implement robust U-Net architectures optimized for grayscale microscopy images
 - Develop combined L1 + SSIM loss function for balanced reconstruction
-- Create production-ready inference pipeline with multiple deployment options
+- Create a deployable inference pipeline with multiple interface options
 - Provide comprehensive training tools with validation and early stopping
 - Deliver intuitive web interface for researchers and clinicians
 - Ensure reproducibility through structured configuration and documentation
@@ -65,6 +76,7 @@ NeuroScope demonstrates the practical application of deep learning to solve real
 - **Responsive Design**: Mobile-friendly interface with real-time status monitoring
 - **Multiple Denoising Modes**: U-Net, auto-routing, salt-and-pepper filter, brightfield mask
 - **Real-time Metrics**: PSNR and SSIM calculation with visual feedback
+- **One-Click Download**: Automatic timestamped download of denoised images with error handling
 
 ### 🔧 Training Pipeline
 - **CARE Dataset Support**: Paired noisy/clean image loading with automatic matching
@@ -79,6 +91,7 @@ NeuroScope demonstrates the practical application of deep learning to solve real
 - **Multiple Output Formats**: Comparison images, individual results, metrics reports
 - **Flexible Model Loading**: Support for PyTorch checkpoints and ONNX runtime
 - **Thread-Safe Service**: Lazy-loaded model inference with concurrent request handling
+- **Smart Download System**: Automatic timestamped filename generation and dual-format support (URL/Base64)
 
 ### 🛠️ Technical Features
 - **ONNX Runtime Support**: Optional deployment-optimized inference
@@ -95,7 +108,7 @@ NeuroScope demonstrates the practical application of deep learning to solve real
 *Upload interface with drag-and-drop support and real-time model status*
 
 ### Denoising Results
-*Side-by-side comparison showing original noisy image and AI-restored output with quality metrics*
+*Side-by-side comparison showing original noisy image and AI-restored output*
 
 ### Training Progress
 *TensorBoard-style training curves showing loss, PSNR, and SSIM improvement over epochs*
@@ -312,7 +325,7 @@ AI Image Denoising In Microscopy/
 │   └── process_microscopy_dataset.py  # Dataset preprocessing
 │
 ├── models/                     # Trained model checkpoints (git-ignored)
-│   ├── deploy/                # Production-ready models
+│   ├── deploy/                # Deployment artifacts
 │   └── overfit_residual_blocks/  # Experimental models
 │
 ├── data/                       # Training datasets (git-ignored)
@@ -376,7 +389,7 @@ cp .env.example .env
 
 # Edit .env with your configuration
 # Required variables:
-# - MODEL_PATH=models/deploy/model.pt
+# - MODEL_PATH=models/deploy/model.onnx
 # - SECRET_KEY=your-secret-key-here
 # - PORT=5000
 ```
@@ -384,13 +397,19 @@ cp .env.example .env
 ### Step 5: Prepare Model Weights
 
 ```bash
-# Option 1: Use provided model
-# Place model.pt in models/deploy/
+# Option 1: Use the bundled validated ONNX model
+# models/deploy/model.onnx is loaded by default
 
-# Option 2: Export from training checkpoint
+# Option 2: Export a checkpoint with held-out test provenance
 python scripts/export_inference_checkpoint.py \
-  --input models/overfit_residual_blocks/best_model.pth \
+  --input models/retrained_compact/best_model.pth \
   --output models/deploy/model.pt
+
+# Export and numerically verify ONNX parity
+python scripts/export_to_onnx.py \
+  --input models/retrained_compact/best_model.pth \
+  --output models/deploy/model.onnx \
+  --image-size 128
 ```
 
 ### Step 6: Verify Installation
@@ -423,8 +442,8 @@ python application.py
 1. **Upload Image**: Drag and drop or click to select a microscopy image
 2. **Select Mode**: Choose denoising algorithm (Auto, U-Net, Salt-Pepper, Brightfield)
 3. **Process**: Click "Start denoising" to begin processing
-4. **View Results**: Compare side-by-side with quality metrics
-5. **Download**: Save denoised image to local storage
+4. **View Results**: Compare side-by-side with input-similarity indicators. These are not quality scores because uploaded images have no clean reference.
+5. **Download**: Click "⬇ Download denoised image" to save the AI-restored image with automatic timestamped filename (format: `denoised-image-YYYYMMDD-HHMMSS.png`)
 
 #### API Endpoints
 
@@ -467,7 +486,7 @@ GET /api/download/<filename>
 
 ```bash
 python inference.py \
-  --model models/deploy/model.pt \
+  --model models/deploy/model.onnx \
   --input path/to/noisy_image.png \
   --output results/
 ```
@@ -476,7 +495,7 @@ python inference.py \
 
 ```bash
 python inference.py \
-  --model models/deploy/model.pt \
+  --model models/deploy/model.onnx \
   --input_dir path/to/noisy_images/ \
   --output_dir results/ \
   --batch
@@ -486,7 +505,7 @@ python inference.py \
 
 ```bash
 python inference.py \
-  --model models/deploy/model.pt \
+  --model models/deploy/model.onnx \
   --input image.png \
   --output results/ \
   --ground_truth clean_image.png \
@@ -503,8 +522,11 @@ python inference.py \
 python train.py \
   --data_dir data \
   --epochs 50 \
-  --batch_size 8 \
-  --lr 0.001 \
+  --batch_size 4 \
+  --lr 0.0001 \
+  --seed 42 \
+  --val_split 0.20 \
+  --test_split 0.15 \
   --save_dir models
 ```
 
@@ -513,28 +535,141 @@ python train.py \
 ```bash
 python train.py \
   --data_dir data \
-  --model_type residual \
   --epochs 100 \
-  --batch_size 16 \
+  --batch_size 4 \
   --lr 0.0001 \
   --val_split 0.2 \
-  --early_stop_patience 15 \
-  --augment \
+  --test_split 0.15 \
+  --early_stop 15 \
+  --seed 42 \
   --save_dir models \
-  --log_dir logs \
-  --sample_indices 0 1 2
+  --log_dir logs
 ```
 
-#### Training with GPU
+#### Validated Compact Training Configuration
 
 ```bash
 python train.py \
   --data_dir data \
-  --epochs 50 \
-  --batch_size 16 \
-  --device cuda \
-  --save_dir models
+  --epochs 60 \
+  --batch_size 8 \
+  --image_size 128 \
+  --base_channels 16 \
+  --depth 3 \
+  --save_dir models/retrained_compact
 ```
+
+---
+
+## Model Validation & Reliability
+
+### Validation design
+
+- **Task type:** paired image-to-image regression, not classification.
+- **Leakage control:** splitting is performed by specimen/session rather than by
+  individual frame. Byte-identical clean targets are checked across splits.
+- **Reproducibility:** Python, NumPy, PyTorch, CUDA, split, and DataLoader seeds
+  are controlled by `--seed` (default `42`).
+- **Clean evaluation:** augmentation is enabled only for training. Validation
+  and test datasets use deterministic preprocessing.
+- **Selection and test:** validation PSNR selects the checkpoint; a separate
+  held-out test split is evaluated once after selection.
+- **Metrics:** PSNR, SSIM, MAE, and MSE are reported per image, by specimen
+  group, and against the unprocessed noisy-input baseline.
+
+Training writes `split_manifest.json`, `training_history.json`, and
+`test_metrics.json`. Run one grouped cross-validation fold with:
+
+```bash
+python train.py --cv_folds 5 --cv_fold 0 --seed 42 --save_dir models/cv_fold_0
+```
+
+Repeat `--cv_fold` from `0` through `4`. Cross-validation is opt-in because
+training five U-Nets is computationally expensive.
+
+Evaluate a PyTorch or ONNX model with paired targets:
+
+```bash
+python evaluate_model.py \
+  --model models/deploy/model.onnx \
+  --data-dir data \
+  --manifest models/split_manifest.json \
+  --split test \
+  --output-dir reports/model_validation
+```
+
+The report contains confidence intervals, per-group results, baseline deltas,
+and worst-case panels arranged as noisy input, prediction, clean target, and
+absolute error. These panels are the relevant explainability aid for image
+restoration. Confusion matrices, classification reports, ROC-AUC, PR-AUC, and
+class feature importance are not applicable because there are no class labels.
+
+### Current deployment candidate
+
+The bundled ONNX model is a 0.88-million-parameter residual U-Net trained for
+60 epochs at 128x128 resolution with seed 42. The specimen-level split contains
+55 training, 30 validation, and 20 test pairs. The test set contains two
+acquisition groups that appear in neither training nor validation.
+
+| Held-out measure | Model | Noisy-input baseline |
+|---|---:|---:|
+| Mean PSNR | 22.04 dB | 10.34 dB |
+| Mean SSIM | 0.781 | 0.458 |
+| Mean MAE | 0.094 | 0.324 |
+| Images with PSNR improvement | 19 / 20 | - |
+| Images with SSIM improvement | 20 / 20 | - |
+
+ONNX output matches the source PyTorch model with maximum absolute error below
+`4e-7`. One held-out PVD image lost 1.70 dB PSNR despite improving in SSIM, so
+the model must not be assumed to improve every image. The full report is
+generated by `evaluate_model.py`; checkpoint hashes and export parity are stored
+next to `models/deploy/model.onnx`.
+
+### Reliability and deployment changes
+
+The previous deployment artifact was traced to a five-image overfit experiment,
+not a complete dataset training run. Its retrospective 105-pair evaluation
+improved mean PSNR on 84 images but degraded 21, with particularly poor results
+on an unseen July PVD acquisition group. Quantization and 128x128 conversion
+accounted for only a small quality difference; the checkpoint provenance and
+domain overfitting were the primary causes of unreliable output.
+
+The corrected pipeline now includes:
+
+- deterministic specimen/session-level holdout and grouped cross-validation;
+- duplicate clean-target checks to prevent cross-split leakage;
+- synchronized augmentation on training pairs and no augmentation in validation
+  or test datasets;
+- a differentiable PyTorch SSIM loss that remains connected to autograd;
+- per-image PSNR, SSIM, MAE, and MSE plus noisy-input baseline deltas;
+- per-group summaries, confidence intervals, and worst-case error panels;
+- checkpoint architecture, seed, split manifest, and held-out metrics;
+- export gates that reject checkpoints without validation provenance;
+- ONNX/PyTorch numerical parity verification before deployment;
+- bounded image upload validation and thread-safe repeated inference.
+
+The production artifact is a 3.4 MB, opset-17 ONNX model. It replaced the older
+54 MB quantized model and 215 MB floating-point export, reducing Render memory
+pressure without dynamic quantization. After deployment, the health endpoint
+reported `ready: true` at 128x128 model resolution, and two consecutive live
+dataset uploads returned HTTP 200. This directly verifies the repeated-request
+failure mode that previously produced HTTP 502 responses.
+
+### Remaining limitations
+
+- Only 105 pairs from 14 specimen/session groups are available locally.
+- Seventy clean files are duplicates across acquisition conditions, reducing
+  the number of independent targets.
+- The held-out test covers only two groups; grouped cross-validation has not yet
+  been run for this checkpoint.
+- Deployment uses 128x128 inference internally to fit Render's 512 MB tier,
+  then resizes the result to the uploaded dimensions.
+- PSNR and SSIM do not prove biological fidelity. External datasets and expert
+  review are required before quantitative microscopy use.
+- The grayscale model may fail on unseen modalities, structures, or noise.
+
+The web UI reports output-to-input similarity only. True denoising quality can
+be measured only when a registered clean target is available.
 
 ---
 
@@ -576,20 +711,20 @@ python train.py \
 ### Training Optimizations
 - **Learning Rate Scheduling**: ReduceLROnPlateau for adaptive learning rates
 - **Early Stopping**: Automatic termination when validation metrics plateau
-- **Gradient Clipping**: Optional gradient norm limiting for training stability
-- **Mixed Precision**: CUDA AMP support for faster GPU training
+- **Deterministic Seeds**: Reproducible Python, NumPy, PyTorch, split, and loader randomness
+- **Clean Evaluation**: Augmentation is disabled for validation and test data
 
 ### Inference Optimizations
 - **Thread-Safe Service**: Concurrent request handling with proper locking
 - **Model Caching**: Single model instance shared across requests
 - **Image Preprocessing**: Optimized numpy-based pipeline
-- **Batch Processing**: Efficient handling of multiple images
+- **Low-Memory ONNX Session**: Sequential single-thread execution without arena or prepacking
 
 ### Memory Management
-- **Efficient Data Loading**: Configurable DataLoader with memory pinning
-- **Image Chunking**: Large image processing in manageable chunks
-- **Garbage Collection**: Automatic cleanup of intermediate results
-- **Stream Processing**: Minimal memory footprint for large datasets
+- **Compact Model**: 0.88M parameters and a 3.4 MB ONNX artifact
+- **Bounded Uploads**: File-size and decoded-pixel limits reject unsafe inputs
+- **128x128 Model Input**: Predictable memory use on Render's 512 MB free tier
+- **Lazy Initialization**: Model memory is allocated only when inference is requested
 
 ---
 
@@ -608,7 +743,7 @@ python train.py \
 ### Challenge 3: Memory Constraints During Inference
 **Problem**: Large microscopy images can exceed available GPU memory.
 
-**Solution**: Implemented CPU-first inference with optional GPU support, efficient image chunking, and memory-aware preprocessing pipeline.
+**Solution**: Retrained a compact 128x128 residual U-Net and exported a 3.4 MB ONNX model using a low-memory sequential runtime configuration.
 
 ### Challenge 4: Dataset Pair Matching
 **Problem**: CARE datasets require exact filename matching between noisy and clean images.
@@ -674,7 +809,7 @@ python train.py \
 ## 🌟 Why This Project Stands Out
 
 ### Engineering Excellence
-- **Production-Ready Architecture**: Not just a research prototype, but a deployable system
+- **Deployable Architecture**: Research code with Flask, Streamlit, and CLI interfaces
 - **Multiple Deployment Options**: Flask web app, Streamlit UI, and CLI tools for different use cases
 - **Comprehensive Error Handling**: Robust error management for real-world reliability
 - **Performance Optimization**: Multiple optimization strategies for efficient inference
@@ -684,12 +819,12 @@ python train.py \
 - **Advanced Model Architectures**: Multiple U-Net variants with custom improvements
 - **Combined Loss Functions**: Innovative L1 + SSIM loss for balanced reconstruction
 - **Training Pipeline Features**: Learning rate scheduling, early stopping, and comprehensive validation
-- **Thread-Safe Inference**: Production-ready concurrent request handling
+- **Thread-Safe Inference**: Serialized model loading and inference safeguards
 - **Flexible Deployment**: Support for both PyTorch and ONNX runtime
 
 ### Research Foundation
 - **CARE Methodology**: Based on peer-reviewed research with custom enhancements
-- **Quantitative Validation**: PSNR and SSIM metrics for objective quality assessment
+- **Auditable Evaluation**: Per-image and specimen-group restoration metrics
 - **Systematic Experimentation**: Structured approach to hyperparameter optimization
 - **Reproducible Results**: Consistent preprocessing and training pipelines
 

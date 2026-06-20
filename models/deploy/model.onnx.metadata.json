@@ -1,0 +1,32 @@
+{
+  "source_checkpoint": "models/retrained_compact/best_model.pth",
+  "source_sha256": "f3ab86c5f180930e7906ff901b36f83a2bb37d1e366496f07cac107ae4df1834",
+  "onnx_sha256": "3c51dcb07c08d34a0accdbdd1864705962598e2e33113b915817250f4aa96bd9",
+  "model_type": "residual",
+  "model_config": {
+    "model_type": "residual",
+    "in_channels": 1,
+    "out_channels": 1,
+    "base_channels": 16,
+    "depth": 3,
+    "bilinear": true,
+    "image_size": 128
+  },
+  "image_size": 128,
+  "opset": 17,
+  "max_abs_parity_error": 3.8743019104003906e-07,
+  "seed": 42,
+  "validation": {
+    "psnr": 22.290521240234376,
+    "ssim": 0.834598700205485
+  },
+  "test_metrics": {
+    "loss": 0.10227023363113404,
+    "psnr": 22.360724639892577,
+    "ssim": 0.8703119874000549,
+    "mae": 0.0933325320482254,
+    "mse": 0.012309173122048378,
+    "samples": 20
+  },
+  "validated_export": true
+}

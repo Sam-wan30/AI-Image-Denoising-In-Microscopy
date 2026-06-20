@@ -20,6 +20,7 @@ from utils.preprocessing import (
     normalize_image,
     resize_image,
 )
+from utils.data_splitting import specimen_group_id
 
 
 class CAREDatasetSimple(Dataset):
@@ -78,6 +79,8 @@ class CAREDatasetSimple(Dataset):
         clean_map = {}
         for clean_file in clean_files:
             clean_name = Path(clean_file).stem  # Get filename without extension
+            if clean_name in clean_map:
+                raise ValueError(f"Duplicate clean-image stem: {clean_name}")
             clean_map[clean_name] = clean_file
         
         # Match noisy files with clean files
@@ -96,6 +99,10 @@ class CAREDatasetSimple(Dataset):
         if unmatched_noisy:
             print(f"Warning: {len(unmatched_noisy)} noisy files without clean matches")
             print(f"Sample unmatched: {unmatched_noisy[:5]}")
+        matched_clean = {Path(clean_path).stem for _noisy_path, clean_path in pairs}
+        unmatched_clean = sorted(set(clean_map).difference(matched_clean))
+        if unmatched_clean:
+            print(f"Warning: {len(unmatched_clean)} clean files without noisy matches")
         
         return pairs
     
@@ -158,6 +165,10 @@ class CAREDatasetSimple(Dataset):
     def __len__(self) -> int:
         """Return the number of image pairs in the dataset."""
         return len(self.image_pairs)
+
+    def group_id(self, idx: int) -> str:
+        """Return the specimen/session group used for leakage-safe splitting."""
+        return specimen_group_id(self.image_pairs[idx][0])
     
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -175,6 +186,11 @@ class CAREDatasetSimple(Dataset):
         # Load images
         noisy_img = self._load_image(noisy_path)
         clean_img = self._load_image(clean_path)
+        if noisy_img.shape != clean_img.shape:
+            raise ValueError(
+                f"Paired image shape mismatch: {Path(noisy_path).name} "
+                f"{noisy_img.shape} != {clean_img.shape}"
+            )
         
         # Preprocess images
         noisy_img = self._preprocess_image(noisy_img)
@@ -238,8 +254,8 @@ def create_dataloader(
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
-        pin_memory=True,
-        drop_last=True
+        pin_memory=torch.cuda.is_available(),
+        drop_last=False,
     )
     
     return dataloader

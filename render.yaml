@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: fluoclean-ai
+    runtime: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: gunicorn application:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 180
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: MODEL_PATH
+        value: models/deploy/model.onnx
+      - key: MODEL_URL
+        value: https://github.com/Sam-wan30/AI-Image-Denoising-In-Microscopy/releases/download/V2.3.4/model.onnx
+      - key: DEVICE
+        value: cpu
+      - key: QUANTIZE_ONNX
+        value: "1"
+      - key: MAX_UPLOAD_MB
+        value: "10"
+      - key: SECRET_KEY
+        generateValue: true
