@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/fluoclean-horizontal-logo.png" alt="FluoClean AI horizontal logo" width="680" />
+
 # FluoClean AI
 ### AI-Powered Microscopy Image Denoising System
 
