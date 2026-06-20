@@ -8,12 +8,13 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Render-46E3B7?style=flat-square&logo=render&logoColor=white)](https://ai-image-denoising-in-microscopy-m2u0.onrender.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 
 **Advanced deep learning pipeline for restoring microscopy images using state-of-the-art U-Net architectures with CARE-inspired training methodology.**
 
-[🚀 Features](#-features) · [🏗️ Architecture](#-system-architecture) · [📚 Documentation](#-documentation) · [🔧 Installation](#-installation--setup) · [💡 Usage](#-usage-guide)
+[🌐 Live Demo](https://ai-image-denoising-in-microscopy-m2u0.onrender.com/) · [🚀 Features](#-features) · [🏗️ Architecture](#-system-architecture) · [📚 Documentation](#-documentation) · [🔧 Installation](#-installation--setup) · [💡 Usage](#-usage-guide)
 
 </div>
 
@@ -22,6 +23,14 @@
 ## 📋 Overview
 
 FluoClean AI is a research prototype for microscopy image denoising. Microscopy images often suffer from photon shot noise, sensor noise, and artifacts that obscure fine cellular structures. The project implements an end-to-end deep learning pipeline inspired by CARE (Content-Aware Image Restoration), with a deployable Flask demonstration. It is not validated for diagnostic or quantitative scientific use.
+
+### 🌐 Live Deployment
+
+Try the deployed Flask application on Render:
+
+**[Launch FluoClean AI →](https://ai-image-denoising-in-microscopy-m2u0.onrender.com/)**
+
+The live demo supports microscopy image upload, multiple denoising modes, side-by-side comparison, input-similarity indicators, and denoised-image download.
 
 ### 🎯 Problem Statement
 
