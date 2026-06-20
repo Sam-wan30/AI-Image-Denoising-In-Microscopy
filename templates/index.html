@@ -4,14 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FluoClean AI · AI Microscopy Denoising</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/fluoclean-logo.png') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
 </head>
 <body>
   <div class="container">
     <nav class="ns-navbar">
       <div class="ns-brand">
-        <div class="ns-brand-icon">🔬</div>
-        <div>
+        <div class="ns-brand-logo">
+          <img
+            src="{{ url_for('static', filename='images/fluoclean-logo.png') }}"
+            alt="FluoClean AI logo"
+            width="42"
+            height="42"
+          />
+        </div>
+        <div class="ns-brand-text">
           <div class="ns-brand-name">FluoClean AI</div>
           <div class="ns-brand-tag">AI Denoising Lab</div>
         </div>
